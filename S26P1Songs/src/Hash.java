@@ -11,7 +11,7 @@
 
 public class Hash
 {
-
+    private int size;
     /**
      * Create a new Hash object.
      *
@@ -22,7 +22,8 @@ public class Hash
      */
     public Hash(int init, MemManager m)
     {
-        // Put stuff here
+        this.size = init;
+        
     }
 
     /**
@@ -43,5 +44,20 @@ public class Hash
             sum += s.charAt(i) * mult;
         }
         return (int)(Math.abs(sum) % m);
+    }
+    
+    public int sascii(String x, int M) {
+        char ch[];
+        ch = x.toCharArray();
+
+        int i, sum;
+        for (sum=0, i=0; i < x.length(); i++) {
+          sum += ch[i];
+        }
+        return sum % M;
+      }
+    
+    public int h(int x) {
+        return x % 16;
     }
 }
