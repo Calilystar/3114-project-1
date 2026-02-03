@@ -4,14 +4,13 @@
  * Hash function: sfold
  * Collision Resolution: Quadratic probing
  *
- * @author <Your name(s) here
- * @version <Put something here>
+ * @author Jocelyn Chu (jocelynchu), Callie Chiang (ccsea)
+ * @version 2026.02.03
  */
 
-
-public class Hash
-{
+public class Hash {
     private int size;
+
     /**
      * Create a new Hash object.
      *
@@ -20,11 +19,11 @@ public class Hash
      * @param m
      *            Memory manager used by this table to store objects
      */
-    public Hash(int init, MemManager m)
-    {
+    public Hash(int init, MemManager m) {
         this.size = init;
-        
+
     }
+
 
     /**
      * Compute the hash function. Uses the "sfold" method from the OpenDSA
@@ -44,20 +43,5 @@ public class Hash
             sum += s.charAt(i) * mult;
         }
         return (int)(Math.abs(sum) % m);
-    }
-    
-    public int sascii(String x, int M) {
-        char ch[];
-        ch = x.toCharArray();
-
-        int i, sum;
-        for (sum=0, i=0; i < x.length(); i++) {
-          sum += ch[i];
-        }
-        return sum % M;
-      }
-    
-    public int h(int x) {
-        return x % 16;
     }
 }

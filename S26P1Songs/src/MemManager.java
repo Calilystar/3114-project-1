@@ -5,13 +5,12 @@
  * This version implements the buddy method.
  *
  * @author Jocelyn Chu (jocelynchu), Callie Chiang (ccsea)
- * @version 12.02.2026
+ * @version 2026.02.03
  */
 
 public class MemManager {
     
     private byte[] memPool;
-    private MemHandle<T>[] table
      /**
      * Create a new MemManager object.
      *
