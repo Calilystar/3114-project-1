@@ -10,6 +10,9 @@
 
 public class Hash {
     private int size;
+    private MemHandle[] table;
+    private int capacity;
+    private MemManager manager;
 
     /**
      * Create a new Hash object.
@@ -20,8 +23,10 @@ public class Hash {
      *            Memory manager used by this table to store objects
      */
     public Hash(int init, MemManager m) {
-        this.size = init;
-
+        this.capacity = init;
+        this.table = new MemHandle[capacity];
+        this.size = 0;
+        this.manager = m;
     }
 
 
