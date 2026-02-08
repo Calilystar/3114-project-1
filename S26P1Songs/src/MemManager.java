@@ -32,10 +32,26 @@ public class MemManager {
 
     }
 
+    
+
+    private void addFreeBlock(int startSize, int i) {
+        
+        
+    }
+
 
     // Store a record and return a handle to it
     public MemHandle insert(byte[] info) {
-
+        int level = 0;
+        while(power(2, level) < info.length) {
+            level += 1;
+            
+        }
+        
+        
+        MemHandle handle = new MemHandle(memPool[power(2, level) + 1], info.length);
+        freeLists[level] = freeLists[level].next;
+        return handle;
     }
 
 
@@ -50,6 +66,8 @@ public class MemManager {
     }
     // ----------------------------------------------------------------
     // helper methods
+    
+    
     
 //    /*
 //     * Allocates a block of the input size.
@@ -77,6 +95,22 @@ public class MemManager {
         return lvl;
     }
     
+    private int power(int num, int pow)
+    {
+        if(num == 0) {
+            return 0;
+        }
+        int total = 1;
+        while (pow > 0)
+        {
+            total = total * num;
+            pow -= 1;
+        }
+        return total;
+        
+        
+    }
+    
     
     // ----------------------------------------------------------------
     /**
@@ -88,6 +122,10 @@ public class MemManager {
         
         Node(int off) {
             offset = off;
+        }
+        
+        public void setNext(Node nextNode) {
+            next = nextNode;
         }
     }
 
