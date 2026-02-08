@@ -57,6 +57,14 @@ public class MemManager {
 
     // Release the space associated with a record
     public void release(MemHandle h) {
+        int offset = h.getStart() - 1;
+        int level = log2(offset);
+        Node node = new Node(offset);
+        
+        node.next = freeLists[level];
+        node = freeLists[level];
+        
+        
     }
 
 
