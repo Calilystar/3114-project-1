@@ -70,7 +70,12 @@ public class MemManager {
 
     // Get back a copy of a stored record
     public byte[] getRecord(MemHandle h) {
-        return null;
+        byte[] bye = new byte[h.getLength()];
+        for(int i = 0; i < h.getLength(); i++)
+        {
+            bye[i] = memPool[h.getStart() + i];
+        }
+        return bye;
     }
     // ----------------------------------------------------------------
     // helper methods
