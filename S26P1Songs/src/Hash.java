@@ -14,6 +14,8 @@ public class Hash {
     private int capacity;
     private MemManager manager;
 
+    private final MemHandle tombstone = new MemHandle(-1, -1);
+
     /**
      * Create a new Hash object.
      *
@@ -48,5 +50,260 @@ public class Hash {
             sum += s.charAt(i) * mult;
         }
         return (int)(Math.abs(sum) % m);
+    }
+
+
+    /**
+     * @return The number of active records.
+     */
+    public int getSize() {
+        return size;
+    }
+
+
+    /**
+     * @return The current table capacity.
+     */
+    public int getCapacity() {
+        return capacity;
+    }
+
+
+    /**
+     * Search for a key in the table, stop when it hits a null slot.
+     * 
+     * @param key
+     *            The string key we want to find
+     * @return The index where the key exists, -1 if it does not.
+     */
+    public int find(String key) {
+        int home = h(key, capacity);
+
+        // quadratic probing
+        for (int i = 0; i < capacity; i++) {
+            int index = (home + i * i) % capacity;
+            MemHandle curr = table[index];
+
+            // key not present if slot is empty
+            if (curr == null) {
+                return -1;
+            }
+
+            // keep probing if tombstone
+            if (curr == tombstone) {
+                continue;
+            }
+
+            // convert handle back to string and compare
+            if (key.equals(handleToString(curr))) {
+                return index;
+            }
+        }
+        return -1;
+    }
+
+
+    /**
+     * Insert a key into the hash table
+     * 
+     * @param key
+     *            The key to insert
+     * 
+     * @return 0 if duplicate, 1 if inserted without resize, 2 if resized and
+     *         inserted.
+     */
+    public int insert(String key) {
+        // do not insert duplicate
+        if (find(key) != -1) {
+            return 0;
+        }
+
+        // track if table resized before inserting
+        boolean resized = false;
+
+        // resize if table exceeds 50% full
+        if ((size + 1) * 2 > capacity) {
+            resize();
+            resized = true;
+        }
+
+        // convert string to bytes and store in memory manager
+        byte[] bytes = key.getBytes();
+        MemHandle handle = manager.insert(bytes);
+
+        int home = h(key, capacity);
+
+        // remember first tombstone to reuse when needed
+        int tomb1 = -1;
+
+        // quadratic probing for insertion
+        for (int i = 0; i < capacity; i++) {
+            int index = (home + i * i) % capacity;
+            MemHandle curr = table[index];
+
+            // insert if empty slot found
+            if (curr == null) {
+                if (tomb1 != -1) {
+                    table[tomb1] = handle;
+                }
+
+                else {
+                    table[index] = handle;
+                }
+
+                size++;
+
+                if (resized) {
+                    return 2;
+                }
+
+                return 1;
+            }
+
+            // keep track of first tombstone
+            if (curr == tombstone && tomb1 == -1) {
+                tomb1 = index;
+            }
+        }
+
+        if (resized) {
+            return 2;
+        }
+
+        return 1;
+    }
+
+    /**
+     * Remove a key from the table
+     * 
+     * @param key The key to remove
+     * 
+     * @return True if removed, false if not
+     */
+    public boolean remove(String key) {
+        int index = find(key);
+        
+        if (index == -1) {
+            return false;
+        }
+        
+        MemHandle hand = table[index];
+        table[index] = tombstone;
+        size--;
+        
+        manager.release(hand);
+        
+        return true;
+    }
+    
+    /**
+     * Print the contents of the hash table.
+     * 
+     * @param isArtist True for artist table, false for song table
+     * 
+     * @return The formatted string
+     */
+    public String print(boolean isArtist) {
+        StringBuilder sb = new StringBuilder();
+        
+        for (int i = 0; i < capacity; i++) {
+            MemHandle curr = table[i];
+            
+            if (curr == null) {
+                continue;
+            }
+            
+            sb.append(i).append(": ");
+            
+            if (curr == tombstone) {
+                sb.append("TOMBSTONE");
+            }
+            
+            else {
+                sb.append("|").append(handleToString(curr)).append("|");
+            }
+            sb.append("\r\n");
+        }
+        if (isArtist) {
+            sb.append("total artists: ").append(size);
+        }
+        else {
+            sb.append("total songs: ").append(size);
+        }
+        return sb.toString();
+    }
+    // ---------------------------------------------------------
+    // helpers
+
+
+    /**
+     * Resize the table by doubling capacity and rehashing active entries.
+     */
+    private void resize() {
+        // save the old table and capacity
+        MemHandle[] old = table;
+        int oldCap = capacity;
+
+        // double capacity and create a new table
+        capacity = oldCap * 2;
+        table = new MemHandle[capacity];
+
+        size = 0;
+
+        // rehash active entries
+        for (int i = 0; i < oldCap; i++) {
+            MemHandle curr = old[i];
+            // skip empty and tombstone
+            if (curr == null || curr == tombstone) {
+                continue;
+            }
+
+            // recover string from memory manager using the handle, and place in
+            // new table
+            String key = handleToString(curr);
+            placeExistingHandle(key, curr);
+        }
+    }
+
+
+    /**
+     * Put an existing handle into the table when rehashing.
+     * 
+     * @param key
+     *            The string for hashing.
+     * 
+     * @param hand
+     *            The existing handle to place.
+     */
+    private void placeExistingHandle(String key, MemHandle hand) {
+        int home = h(key, capacity);
+
+        // probe until null slot is found
+        for (int i = 0; i < capacity; i++) {
+            int index = (home + i * i) % capacity;
+            // place if empty
+            if (table[index] == null) {
+                table[index] = hand;
+                size++;
+                return;
+            }
+        }
+    }
+
+
+    /**
+     * Convert stored record back into string.
+     * 
+     * @param hand
+     *            The handle that references the record in the memory pool.
+     * 
+     * @return The string that was stored.
+     */
+    private String handleToString(MemHandle hand) {
+        // get bytes from memory manager
+        byte[] rec = manager.getRecord(hand);
+
+        // convert bytes back into a string
+        return new String(rec);
     }
 }
