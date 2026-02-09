@@ -10,12 +10,14 @@ import java.util.Arrays;
  */
 
 public class MemManager {
-
+    // Memory pool.
     private byte[] memPool;
     // An array of free lists.
     private Node[] freeLists;
     // Helper for messages about pool expansion.
     private StringBuilder alertExpand;
+    // Location of next free byte.
+    private int nextFree;
 
     /**
      * Create a new MemManager object.
@@ -26,72 +28,159 @@ public class MemManager {
     public MemManager(int startSize) {
         memPool = new byte[startSize];
         alertExpand = new StringBuilder();
+        nextFree = 0;
         int maxLevel = log2(startSize);
         freeLists = new Node[maxLevel + 1];
         addFreeBlock(startSize, 0);
 
     }
 
-    
 
-    private void addFreeBlock(int startSize, int i) {
-        
-        
-    }
+    /**
+     * Add a free block to the appropriate free list.
+     * 
+     * @param blockSize
+     *            The size of the free block.
+     * @param offset
+     *            The starting offset of the free block.
+     */
+    private void addFreeBlock(int blockSize, int offset) {
+        // level corresponding to block size
+        int level = log2(blockSize);
 
+        // new node to insert
+        Node nod = new Node(offset);
 
-    // Store a record and return a handle to it
-    public MemHandle insert(byte[] info) {
-        int level = 0;
-        while(power(2, level) < info.length) {
-            level += 1;
-            
+        // insert into empty list or at the front if smallest offset
+        if (freeLists[level] == null || offset < freeLists[level].offset) {
+            nod.next = freeLists[level];
+            freeLists[level] = nod;
+            return;
         }
-        
-        
-        MemHandle handle = new MemHandle(memPool[power(2, level) + 1], info.length);
-        freeLists[level] = freeLists[level].next;
-        return handle;
+
+        // otherwise insert in sorted position
+        Node curr = freeLists[level];
+
+        while (curr.next != null && curr.next.offset < offset) {
+            curr = curr.next;
+        }
+
+        nod.next = curr.next;
+        curr.next = nod;
     }
 
 
-    // Release the space associated with a record
+    /**
+     * Store a record and return a handle to it
+     * 
+     * @param info
+     *            The byte array of the record
+     * 
+     * @return The MemHandle where it is stored
+     */
+    public MemHandle insert(byte[] info) {
+        // expand until there's enough space
+        while (nextFree + info.length > memPool.length) {
+            expandPool();
+        }
+
+        int start = nextFree;
+
+        // copy bytes into memory
+        System.arraycopy(info, 0, memPool, start, info.length);
+
+        nextFree += info.length;
+
+        return new MemHandle(start, info.length);
+    }
+
+
+    /**
+     * Get expansion message
+     * 
+     * @return The expansion message.
+     */
+    public String getExpandMethod() {
+        String msg = alertExpand.toString();
+        alertExpand.setLength(0);
+        return msg;
+    }
+    
+    
+    /**
+     * Release the space associated with a record
+     * 
+     * @param h
+     *            The handle to record to remove
+     */
     public void release(MemHandle h) {
         int offset = h.getStart() - 1;
         int level = log2(offset);
         Node node = new Node(offset);
-        
+
         node.next = freeLists[level];
         node = freeLists[level];
-        
-        
+
     }
 
 
-    // Get back a copy of a stored record
+    /**
+     * Get back a copy of a stored record
+     * 
+     * @param h
+     *            The handle to record
+     * 
+     * @return The copy of record bytes
+     */
     public byte[] getRecord(MemHandle h) {
         byte[] bye = new byte[h.getLength()];
-        for(int i = 0; i < h.getLength(); i++)
-        {
+        for (int i = 0; i < h.getLength(); i++) {
             bye[i] = memPool[h.getStart() + i];
         }
         return bye;
     }
+    
+    /**
+     * Print free block info.
+     * 
+     * @return The free block info.
+     */
+    public String printBlocks() {
+        if (nextFree == memPool.length) {
+            return "No free blocks available.";
+        }
+        return (memPool.length - nextFree) + " bytes free";
+    }
     // ----------------------------------------------------------------
     // helper methods
-    
-    
-    
-//    /*
-//     * Allocates a block of the input size.
-//     */
-//    private int alloc(int size) {
-//        int level = log2(size);
-//        if (level < 0) {
-//            return -1;
-//        }
-//    }
-    
+
+// /*
+// * Allocates a block of the input size.
+// */
+// private int alloc(int size) {
+// int level = log2(size);
+// if (level < 0) {
+// return -1;
+// }
+// }
+
+
+    /**
+     * Expand memory pool
+     */
+    private void expandPool() {
+        int newSize = memPool.length * 2;
+        byte[] newPool = new byte[newSize];
+
+        System.arraycopy(memPool, 0, newPool, 0, memPool.length);
+
+        memPool = newPool;
+
+        alertExpand.append("Memory pool expanded to ").append(newSize).append(
+            " bytes\r\n");
+    }
+
+
     /**
      * Compute log2 of some int for power of two sizes.
      */
@@ -107,24 +196,21 @@ public class MemManager {
         }
         return lvl;
     }
-    
-    private int power(int num, int pow)
-    {
-        if(num == 0) {
+
+
+    private int power(int num, int pow) {
+        if (num == 0) {
             return 0;
         }
         int total = 1;
-        while (pow > 0)
-        {
+        while (pow > 0) {
             total = total * num;
             pow -= 1;
         }
         return total;
-        
-        
+
     }
-    
-    
+
     // ----------------------------------------------------------------
     /**
      * Singly linked node to represent free blocks in buddy allocator.
@@ -132,11 +218,12 @@ public class MemManager {
     private static class Node {
         int offset;
         Node next;
-        
+
         Node(int off) {
             offset = off;
         }
-        
+
+
         public void setNext(Node nextNode) {
             next = nextNode;
         }
