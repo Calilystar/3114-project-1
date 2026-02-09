@@ -70,6 +70,16 @@ public class Hash {
 
 
     /**
+     * Track if table resized before inserting.
+     * 
+     * @return True if inserting one more element will cause resize.
+     */
+    public boolean willResize() {
+        return (size + 1) * 2 > capacity;
+    }
+
+
+    /**
      * Search for a key in the table, stop when it hits a null slot.
      * 
      * @param key
@@ -89,13 +99,8 @@ public class Hash {
                 return -1;
             }
 
-            // keep probing if tombstone
-            if (curr == tombstone) {
-                continue;
-            }
-
             // convert handle back to string and compare
-            if (key.equals(handleToString(curr))) {
+            if (curr != tombstone && key.equals(handleToString(curr))) {
                 return index;
             }
         }
@@ -118,13 +123,9 @@ public class Hash {
             return 0;
         }
 
-        // track if table resized before inserting
-        boolean resized = false;
-
         // resize if table exceeds 50% full
         if ((size + 1) * 2 > capacity) {
             resize();
-            resized = true;
         }
 
         // convert string to bytes and store in memory manager
@@ -152,11 +153,6 @@ public class Hash {
                 }
 
                 size++;
-
-                if (resized) {
-                    return 2;
-                }
-
                 return 1;
             }
 
@@ -166,64 +162,72 @@ public class Hash {
             }
         }
 
-        if (resized) {
-            return 2;
-        }
-
         return 1;
     }
+
 
     /**
      * Remove a key from the table
      * 
-     * @param key The key to remove
+     * @param key
+     *            The key to remove
      * 
      * @return True if removed, false if not
      */
     public boolean remove(String key) {
         int index = find(key);
-        
+
         if (index == -1) {
             return false;
         }
-        
+
         MemHandle hand = table[index];
         table[index] = tombstone;
         size--;
-        
+
         manager.release(hand);
-        
+
         return true;
     }
-    
+
+
     /**
      * Print the contents of the hash table.
      * 
-     * @param isArtist True for artist table, false for song table
+     * @param isArtist
+     *            True if table stores artists, false if it stores songs.
      * 
-     * @return The formatted string
+     * @return The string representation of the table
      */
     public String print(boolean isArtist) {
         StringBuilder sb = new StringBuilder();
-        
+
+        // iterate through hash table
         for (int i = 0; i < capacity; i++) {
             MemHandle curr = table[i];
-            
+
+            // skip empty slots
             if (curr == null) {
                 continue;
             }
-            
+
+            // print the index number
             sb.append(i).append(": ");
-            
+
+            // check if current slot is tombstone
             if (curr == tombstone) {
                 sb.append("TOMBSTONE");
             }
-            
+
+            // print the data stored at the slot
             else {
                 sb.append("|").append(handleToString(curr)).append("|");
             }
+
+            // move to next line
             sb.append("\r\n");
         }
+        // print the total number of entries based on type of table
         if (isArtist) {
             sb.append("total artists: ").append(size);
         }
@@ -234,6 +238,7 @@ public class Hash {
     }
     // ---------------------------------------------------------
     // helpers
+
 
 
     /**
