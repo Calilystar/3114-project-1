@@ -105,8 +105,8 @@ public class MemManager {
         alertExpand.setLength(0);
         return msg;
     }
-    
-    
+
+
     /**
      * Release the space associated with a record
      * 
@@ -139,7 +139,8 @@ public class MemManager {
         }
         return bye;
     }
-    
+
+
     /**
      * Print free block info.
      * 
@@ -175,7 +176,15 @@ public class MemManager {
         System.arraycopy(memPool, 0, newPool, 0, memPool.length);
 
         memPool = newPool;
+///
+        Node[] copyFreeLists = new Node[freeLists.length + 1];
 
+        System.arraycopy(freeLists, 0, copyFreeLists, 0, freeLists.length);
+
+        freeLists = copyFreeLists;
+        
+        addFreeBlock(memPool.length, memPool.length);
+///
         alertExpand.append("Memory pool expanded to ").append(newSize).append(
             " bytes\r\n");
     }
