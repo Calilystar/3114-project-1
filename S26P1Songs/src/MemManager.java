@@ -79,20 +79,65 @@ public class MemManager {
      * @return The MemHandle where it is stored
      */
     public MemHandle insert(byte[] info) {
-        // expand until there's enough space
-        while (nextFree + info.length > memPool.length) {
-            expandPool();
+        int num = 0;
+        while (power(2, num) < info.length) {
+            num += 1;
         }
-
-        int start = nextFree;
-
-        // copy bytes into memory
-        System.arraycopy(info, 0, memPool, start, info.length);
-
-        nextFree += info.length;
-
-        return new MemHandle(start, info.length);
+        int target = num;
+        
+        while (num >= freeLists.length || freeLists[num] == null) {
+            if (num >= freeLists.length -1) {
+                expandPool();
+                num = target;
+                
+            }
+            else {
+                num += 1;
+            }
+        }
+        
+        Node node = freeLists[num];
+        freeLists[num] = node.next;
+        
+        while (num > target) {
+            num -= 1;
+            int size = power(2, num);
+            int offset = node.offset + size;
+            addFreeBlock(size, offset);
+        }
+        
+        System.arraycopy(info, 0, memPool, node.offset, info.length);
+        
+        return new MemHandle(node.offset, info.length);
+        
+        
+        
+        
+//        while (freeLists[num] == null) {
+//            num += 1;
+//            if (num <= freeLists.length) {
+//                expandPool();
+//            }
+//        }
+       
+//        // expand until there's enough space
+//        
+//        
+//        while (nextFree + info.length > memPool.length) {
+//            expandPool();
+//        }
+//
+//        int start = nextFree;
+//
+//        // copy bytes into memory
+//        System.arraycopy(info, 0, memPool, start, info.length);
+//
+//        nextFree += info.length;
+//
+//        return new MemHandle(start, info.length);
     }
+    
+    
 
 
     /**
@@ -114,12 +159,34 @@ public class MemManager {
      *            The handle to record to remove
      */
     public void release(MemHandle h) {
-        int offset = h.getStart() - 1;
-        int level = log2(offset);
+        
+        int num = 0;
+        while (power(2, num) < h.getLength()) {
+            num += 1;
+        }
+        int level = num;
+        int size = power(2, num);  
+        int offset = h.getStart();
+        
+        while (level < freeLists.length) {
+            int buddy;
+            if ((offset / size) % 2 == 0) {
+                buddy = offset + size;
+            } else {
+                buddy = offset - size;
+            }
+            Node prev = null;
+            Node curr = freeLists[level];
+            
+            boolean found = false;
+            
+        }
+        
         Node node = new Node(offset);
 
         node.next = freeLists[level];
         node = freeLists[level];
+        
 
     }
 
@@ -170,6 +237,7 @@ public class MemManager {
      * Expand memory pool
      */
     private void expandPool() {
+        int oldSize = memPool.length;
         int newSize = memPool.length * 2;
         byte[] newPool = new byte[newSize];
 
@@ -183,7 +251,7 @@ public class MemManager {
 
         freeLists = copyFreeLists;
         
-        addFreeBlock(memPool.length, memPool.length);
+        addFreeBlock(oldSize, oldSize);
 ///
         alertExpand.append("Memory pool expanded to ").append(newSize).append(
             " bytes\r\n");
