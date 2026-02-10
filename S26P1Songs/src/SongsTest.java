@@ -203,7 +203,8 @@ public class SongsTest extends TestCase {
         assertFuzzyEquals("Initial memory manager size must be positive", it
             .create(10, -2));
         assertFuzzyEquals("Initial hash table size must be positive", it.create(
-            -5, 17));
+            0, 32));
+        assertFuzzyEquals("", it.create(10, 32));
     }
 
 
