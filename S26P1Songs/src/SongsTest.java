@@ -361,5 +361,89 @@ public class SongsTest extends TestCase {
         assertTrue(it.print("artist").contains("total artists: 0"));
         assertTrue(it.print("song").contains("total songs: 0"));
     }
+    
+    
+    /**
+     * Tests multiple blocks in hash.
+     * 
+     * @throws Exception
+     */
+    public void testHashMultiBlock() throws Exception {
+        it = new SongsDB();
+        it.create(10, 64);
+       
+        it.insert("ABCDE", "SongA"); 
+        assertTrue(it.print("artist").contains("ABCDE"));
+    }
+    
+    
+    /**
+     * Tests quadratic probing.
+     * 
+     * @throws Exception
+     */
+    public void testQuadraticProbing() throws Exception {
+        it = new SongsDB();
+        it.create(4, 64); 
+        
+        
+        it.insert("a", "song1");
+        it.insert("i", "song2"); 
+        
+        assertFuzzyEquals("|i| is removed from the Artist database", it.remove("artist", "i"));
+    }
+    
+    
+    /**
+     * Tests insert.
+     * 
+     * @throws Exception
+     */
+    public void testInsertLogic() throws Exception {
+        it = new SongsDB();
+        it.create(10, 64);
+        it.insert("ArtistA", "SongA");
+        
+        String result = it.insert("ArtistA", "SongB");
+        assertTrue(result.contains("duplicates a record already in the Artist database"));
+    }
+    
+    
+    /**
+     * Tests collisions and probing.
+     * 
+     * @throws Exception
+     */
+    public void testProbingAndCollisions() throws Exception {
+        it = new SongsDB();
+        it.create(10, 64);
+        
+        it.insert("A", "Song1");
+        it.insert("k", "Song2"); 
+        
+        String result = it.remove("artist", "k");
+        assertTrue(result.contains("removed"));
+    }
+    
+    /**
+     * Tests resizing when there are tombstones.
+     * @throws Exception
+     */
+    public void testResizeWithTombstone() throws Exception {
+        it = new SongsDB();
+        it.create(4, 64); 
+        it.insert("A", "S1"); 
+        it.remove("artist", "A"); 
+        it.insert("B", "S2"); 
+        it.insert("C", "S3"); 
+        String result = it.insert("D", "S4");
+        assertTrue(result.contains("Artist hash table size doubled"));
+        
+        String output = it.print("artist");
+        assertTrue(output.contains("|B|"));
+        assertTrue(output.contains("|C|"));
+        assertTrue(output.contains("|D|"));
+        assertFalse(output.contains("|A|"));
+    }
 
 }
