@@ -124,8 +124,10 @@ public class Hash {
         }
 
         // resize if table exceeds 50% full
+        boolean resize = false;
         if ((size + 1) * 2 > capacity) {
             resize();
+            resize = true;
         }
 
         // convert string to bytes and store in memory manager
@@ -153,7 +155,12 @@ public class Hash {
                 }
 
                 size++;
-                return 1;
+                if(resize == true) {
+                    return 2;
+                }
+                else {
+                    return 1;
+                }
             }
 
             // keep track of first tombstone

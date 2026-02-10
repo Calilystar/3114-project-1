@@ -45,6 +45,11 @@ public class MemManager {
      *            The starting offset of the free block.
      */
     private void addFreeBlock(int blockSize, int offset) {
+
+        if (blockSize <= 0) {
+            return;
+        }
+
         // level corresponding to block size
         int level = log2(blockSize);
 
@@ -84,60 +89,55 @@ public class MemManager {
             num += 1;
         }
         int target = num;
-        
+
         while (num >= freeLists.length || freeLists[num] == null) {
-            if (num >= freeLists.length -1) {
+            if (num >= freeLists.length - 1) {
                 expandPool();
                 num = target;
-                
+
             }
             else {
                 num += 1;
             }
         }
-        
+
         Node node = freeLists[num];
         freeLists[num] = node.next;
-        
+
         while (num > target) {
             num -= 1;
             int size = power(2, num);
             int offset = node.offset + size;
             addFreeBlock(size, offset);
         }
-        
+
         System.arraycopy(info, 0, memPool, node.offset, info.length);
-        
+
         return new MemHandle(node.offset, info.length);
-        
-        
-        
-        
-//        while (freeLists[num] == null) {
-//            num += 1;
-//            if (num <= freeLists.length) {
-//                expandPool();
-//            }
-//        }
-       
-//        // expand until there's enough space
-//        
-//        
-//        while (nextFree + info.length > memPool.length) {
-//            expandPool();
-//        }
+
+// while (freeLists[num] == null) {
+// num += 1;
+// if (num <= freeLists.length) {
+// expandPool();
+// }
+// }
+
+// // expand until there's enough space
 //
-//        int start = nextFree;
 //
-//        // copy bytes into memory
-//        System.arraycopy(info, 0, memPool, start, info.length);
+// while (nextFree + info.length > memPool.length) {
+// expandPool();
+// }
 //
-//        nextFree += info.length;
+// int start = nextFree;
 //
-//        return new MemHandle(start, info.length);
+// // copy bytes into memory
+// System.arraycopy(info, 0, memPool, start, info.length);
+//
+// nextFree += info.length;
+//
+// return new MemHandle(start, info.length);
     }
-    
-    
 
 
     /**
@@ -159,37 +159,63 @@ public class MemManager {
      *            The handle to record to remove
      */
     public void release(MemHandle h) {
-        
+
         int num = 0;
         while (power(2, num) < h.getLength()) {
             num += 1;
         }
         int level = num;
-        int size = power(2, num);  
+        int size = power(2, num);
         int offset = h.getStart();
-        
+
         while (level < freeLists.length) {
             int buddy;
             if ((offset / size) % 2 == 0) {
                 buddy = offset + size;
-            } else {
+            }
+            else {
                 buddy = offset - size;
             }
             Node prev = null;
             Node curr = freeLists[level];
-            
-            boolean found = false;
-            
-        }
-        
-        Node node = new Node(offset);
 
-        node.next = freeLists[level];
-        node = freeLists[level];
-        
+            boolean found = false;
+
+            while (curr != null) {
+                if (curr.offset == buddy) {
+                    found = true;
+                    if (prev == null) {
+                        freeLists[level] = curr.next;
+                    }
+                    else {
+                        prev.next = curr.next;
+                    }
+                    break;
+                }
+                prev = curr;
+                curr = curr.next;
+            }
+
+            if (!found) {
+                break;
+            }
+
+            if (buddy < offset) {
+                offset = buddy;
+            }
+
+            size *= 2;
+            level++;
+        }
+
+        addFreeBlock(size, offset);
 
     }
 
+
+    
+
+    
 
     /**
      * Get back a copy of a stored record
@@ -250,7 +276,7 @@ public class MemManager {
         System.arraycopy(freeLists, 0, copyFreeLists, 0, freeLists.length);
 
         freeLists = copyFreeLists;
-        
+
         addFreeBlock(oldSize, oldSize);
 ///
         alertExpand.append("Memory pool expanded to ").append(newSize).append(

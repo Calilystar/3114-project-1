@@ -22,7 +22,21 @@ public class SongsDB implements Songs {
     public SongsDB() {
     }
 
+    
+    
+    private int power(int num, int pow) {
+        if (num == 0) {
+            return 0;
+        }
+        int total = 1;
+        while (pow > 0) {
+            total = total * num;
+            pow -= 1;
+        }
+        return total;
 
+    }
+    
     /**
      * Create a brave new World.
      *
@@ -33,8 +47,18 @@ public class SongsDB implements Songs {
      * @return Error messages if appropriate
      */
     public String create(int inHash, int inMemMan) {
+        
+        boolean ensurePowerOfTwo = false;
+        
+        int num = 0;
+        while( power(2, num) <= inMemMan) {
+            if (power(2, num) == inMemMan) {
+                ensurePowerOfTwo = true;
+            }
+            num += 1;
+        }
 
-        if (inHash > 0 || inMemMan != 0) {
+        if (inHash > 0 || (inMemMan > 0 && ensurePowerOfTwo)) {
             this.memMana = new MemManager(inMemMan);
             this.artists = new Hash(inHash, memMana);
             this.songs = new Hash(inHash, memMana);
@@ -60,6 +84,8 @@ public class SongsDB implements Songs {
         this.songs = new Hash(initHashSize, memMana);
         return true;
     }
+    
+    
 
 
     // ----------------------------------------------------------
@@ -75,13 +101,56 @@ public class SongsDB implements Songs {
      */
     public String insert(String artistString, String songString)
         throws IOException {
+        StringBuilder str = new StringBuilder();
+        if (artistString == null || artistString.isEmpty() || 
+            songString == null || songString.isEmpty()) {
+            return "Cannot insert.";
+        }
+
+        int insertedArtist = artists.insert(artistString);
+
+        str.append(memMana.getExpandMethod());
+
+        if (insertedArtist == 2) {
+            str.append("Artist hash table size doubled\r\n");
+        }
+
+        else if (insertedArtist == 0) {
+            str.append("|").append(artistString).append(
+                "| duplicates a record already in the Artist database\r\n");
+        }
+        else {
+            str.append("|").append(artistString).append(
+                "| is added to the Artist database\r\n");
+        }
+
+        if (artistString.equals("") || songString.equals("")) {
+            return "Cannot insert.";
+        }
+
+        int insertedSong = songs.insert(songString);
+        str.append(memMana.getExpandMethod());
+
+        if (insertedSong == 2) {
+            str.append("Song hash table size doubled\r\n");
+        }
+
+        else if (insertedSong == 0) {
+            str.append("|").append(songString).append(
+                "| duplicates a record already in the Song database\r\n");
+        }
+        else {
+            str.append("|").append(songString).append(
+                "| is added to the Song database\r\n");
+        }
+
         if (artistString == "" || songString == "") {
             return "Cannot insert.";
         }
+
         else {
-            this.artists.insert(artistString);
-            this.songs.insert(songString);
-            return "";
+            
+            return str.toString();
         }
     }
 
@@ -98,20 +167,42 @@ public class SongsDB implements Songs {
      * @throws IOException
      */
     public String remove(String type, String nameString) throws IOException {
+        StringBuilder str = new StringBuilder();
         
-        if(type.equals("artist")) {
-           if( this.artists.remove(nameString)) {
-               return "";
-           }
-            
-        }
-        else if (type.equals("song")) {
-            if (this.songs.remove(nameString)) {
-                return "";
+
+        
+
+        if (type.equals("artist")) {
+            boolean name = this.artists.remove(nameString);
+            if (name) {
+                str.append("|").append(nameString).append(
+                    "| is removed from the Artist database\r\n");
             }
-            
+            else {
+                str.append("|").append(nameString).append(
+                    "| does not exist.\r\n");
+            }
         }
-        return "Cannot remove.";
+
+        else if (type.equals("song")) {
+            boolean song = this.songs.remove(nameString);
+            if (song) {
+                str.append("|").append(nameString).append(
+                    "| is removed from the Song database\r\n");
+            }
+            else {
+                str.append("|").append(nameString).append(
+                    "| does not exist.\r\n");
+            }
+
+        }
+
+        
+        else {
+            return "Bad type value |" + type + "| on remove";
+        }
+        
+        return str.toString();
     }
 
 
@@ -131,7 +222,10 @@ public class SongsDB implements Songs {
         if (type.equals("song")) {
             return songs.toString();
         }
-        else {
+        if (type.equals("blocks")) {
+            return memMana.printBlocks();
+        }
+        else {  
             return "Cannot print.";
         }
     }
