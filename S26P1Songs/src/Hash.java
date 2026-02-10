@@ -113,26 +113,24 @@ public class Hash {
      * 
      * @param key
      *            The key to insert
+     * @param handle
+     *            The handle to record already stored in mem manager.
      * 
      * @return 0 if duplicate, 1 if inserted without resize, 2 if resized and
      *         inserted.
      */
-    public int insert(String key) {
+    public int insert(String key, MemHandle handle) {
         // do not insert duplicate
         if (find(key) != -1) {
             return 0;
         }
 
         // resize if table exceeds 50% full
-        boolean resize = false;
-        if ((size + 1) * 2 > capacity) {
+        boolean resized = false;
+        if (willResize()) {
             resize();
-            resize = true;
+            resized = true;
         }
-
-        // convert string to bytes and store in memory manager
-        byte[] bytes = key.getBytes();
-        MemHandle handle = manager.insert(bytes);
 
         int home = h(key, capacity);
 
@@ -155,12 +153,10 @@ public class Hash {
                 }
 
                 size++;
-                if(resize == true) {
+                if (resized) {
                     return 2;
                 }
-                else {
-                    return 1;
-                }
+                return 1;
             }
 
             // keep track of first tombstone
@@ -168,7 +164,9 @@ public class Hash {
                 tomb1 = index;
             }
         }
-
+        if (resized) {
+            return 2;
+        }
         return 1;
     }
 
@@ -179,22 +177,21 @@ public class Hash {
      * @param key
      *            The key to remove
      * 
-     * @return True if removed, false if not
+     * @return The removed handle
      */
-    public boolean remove(String key) {
+    public MemHandle remove(String key) {
         int index = find(key);
 
+        // return null if not found
         if (index == -1) {
-            return false;
+            return null;
         }
 
         MemHandle hand = table[index];
         table[index] = tombstone;
         size--;
 
-        manager.release(hand);
-
-        return true;
+        return hand;
     }
 
 
@@ -247,7 +244,6 @@ public class Hash {
     // helpers
 
 
-
     /**
      * Resize the table by doubling capacity and rehashing active entries.
      */
@@ -259,7 +255,6 @@ public class Hash {
         // double capacity and create a new table
         capacity = oldCap * 2;
         table = new MemHandle[capacity];
-
         size = 0;
 
         // rehash active entries

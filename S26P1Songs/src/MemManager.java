@@ -16,8 +16,6 @@ public class MemManager {
     private Node[] freeLists;
     // Helper for messages about pool expansion.
     private StringBuilder alertExpand;
-    // Location of next free byte.
-    private int nextFree;
 
     /**
      * Create a new MemManager object.
@@ -28,12 +26,158 @@ public class MemManager {
     public MemManager(int startSize) {
         memPool = new byte[startSize];
         alertExpand = new StringBuilder();
-        nextFree = 0;
         int maxLevel = log2(startSize);
         freeLists = new Node[maxLevel + 1];
         addFreeBlock(startSize, 0);
 
     }
+
+
+    /**
+     * Store a record and return a handle to it
+     * 
+     * @param info
+     *            The byte array of the record
+     * 
+     * @return The MemHandle where it is stored
+     */
+    public MemHandle insert(byte[] info) {
+        int target = smallestLevel(info.length);
+        int search = target;
+
+        while (true) {
+            if (search >= freeLists.length) {
+                expandPool();
+                search = target;
+                continue;
+            }
+
+            if (freeLists[search] != null) {
+                break;
+            }
+
+            search = search + 1;
+
+            if (search >= freeLists.length) {
+                expandPool();
+                search = target;
+
+            }
+        }
+        Node block = freeLists[search];
+        freeLists[search] = block.next;
+
+        int offset = block.offset;
+
+        while (search > target) {
+            search = search - 1;
+            int half = blockSize(search);
+            int rightOffset = offset + half;
+            addFreeBlock(half, rightOffset);
+        }
+
+        System.arraycopy(info, 0, memPool, offset, info.length);
+        return new MemHandle(offset, info.length);
+
+    }
+
+
+    /**
+     * Get expansion message
+     * 
+     * @return The expansion message.
+     */
+    public String getExpandMethod() {
+        String msg = alertExpand.toString();
+        alertExpand.setLength(0);
+        return msg;
+    }
+
+
+    /**
+     * Release the space associated with a record
+     * 
+     * @param h
+     *            The handle to record to remove
+     */
+    public void release(MemHandle h) {
+        int lvl = smallestLevel(h.getLength());
+        int size = blockSize(lvl);
+        int offset = h.getStart();
+
+        while (lvl < freeLists.length) {
+            int buddy = offset ^ size;
+
+            if (!removeFreeBlock(lvl, buddy)) {
+                break;
+            }
+
+            if (buddy < offset) {
+                offset = buddy;
+            }
+
+            size = size * 2;
+            lvl = lvl + 1;
+
+        }
+        addFreeBlock(size, offset);
+    }
+
+
+    /**
+     * Get back a copy of a stored record
+     * 
+     * @param h
+     *            The handle to record
+     * 
+     * @return The copy of record bytes
+     */
+    public byte[] getRecord(MemHandle h) {
+        byte[] bye = new byte[h.getLength()];
+        System.arraycopy(memPool, h.getStart(), bye, 0, h.getLength());
+        return bye;
+    }
+
+
+    /**
+     * Print free block info.
+     * 
+     * @return The free block info.
+     */
+    public String printBlocks() {
+        StringBuilder sb = new StringBuilder();
+        boolean free = false;
+
+        for (int lvl = 0; lvl < freeLists.length; lvl++) {
+            if (freeLists[lvl] == null) {
+                continue;
+            }
+            free = true;
+            sb.append(blockSize(lvl)).append(": ");
+
+            Node curr = freeLists[lvl];
+            while (curr != null) {
+                sb.append(curr.offset);
+                if (curr.next != null) {
+                    sb.append(" ");
+
+                }
+                curr = curr.next;
+
+            }
+            sb.append("\r\n");
+
+        }
+        if (!free) {
+            return "No free blocks are available.";
+
+        }
+        sb.setLength(sb.length() - 2);
+        return sb.toString();
+    }
+
+    // ----------------------------------------------------------------
+    // helper methods
 
 
     /**
@@ -76,187 +220,35 @@ public class MemManager {
 
 
     /**
-     * Store a record and return a handle to it
+     * Removes free block from a level list.
      * 
-     * @param info
-     *            The byte array of the record
+     * @param level
+     *            The level list.
      * 
-     * @return The MemHandle where it is stored
+     * @param offset
+     *            The offset of the block to remove.
+     * @return True if the block was removed, false if not.
      */
-    public MemHandle insert(byte[] info) {
-        int num = 0;
-        while (power(2, num) < info.length) {
-            num += 1;
-        }
-        int target = num;
+    private boolean removeFreeBlock(int level, int offset) {
+        Node prev = null;
+        Node curr = freeLists[level];
 
-        while (num >= freeLists.length || freeLists[num] == null) {
-            if (num >= freeLists.length - 1) {
-                expandPool();
-                num = target;
+        while (curr != null) {
+            if (curr.offset == offset) {
+                if (prev == null) {
+                    freeLists[level] = curr.next;
 
-            }
-            else {
-                num += 1;
-            }
-        }
-
-        Node node = freeLists[num];
-        freeLists[num] = node.next;
-
-        while (num > target) {
-            num -= 1;
-            int size = power(2, num);
-            int offset = node.offset + size;
-            addFreeBlock(size, offset);
-        }
-
-        System.arraycopy(info, 0, memPool, node.offset, info.length);
-
-        return new MemHandle(node.offset, info.length);
-
-// while (freeLists[num] == null) {
-// num += 1;
-// if (num <= freeLists.length) {
-// expandPool();
-// }
-// }
-
-// // expand until there's enough space
-//
-//
-// while (nextFree + info.length > memPool.length) {
-// expandPool();
-// }
-//
-// int start = nextFree;
-//
-// // copy bytes into memory
-// System.arraycopy(info, 0, memPool, start, info.length);
-//
-// nextFree += info.length;
-//
-// return new MemHandle(start, info.length);
-    }
-
-
-    /**
-     * Get expansion message
-     * 
-     * @return The expansion message.
-     */
-    public String getExpandMethod() {
-        String msg = alertExpand.toString();
-        alertExpand.setLength(0);
-        return msg;
-    }
-
-
-    /**
-     * Release the space associated with a record
-     * 
-     * @param h
-     *            The handle to record to remove
-     */
-    public void release(MemHandle h) {
-
-        int num = 0;
-        while (power(2, num) < h.getLength()) {
-            num += 1;
-        }
-        int level = num;
-        int size = power(2, num);
-        int offset = h.getStart();
-
-        while (level < freeLists.length) {
-            int buddy;
-            if ((offset / size) % 2 == 0) {
-                buddy = offset + size;
-            }
-            else {
-                buddy = offset - size;
-            }
-            Node prev = null;
-            Node curr = freeLists[level];
-
-            boolean found = false;
-
-            while (curr != null) {
-                if (curr.offset == buddy) {
-                    found = true;
-                    if (prev == null) {
-                        freeLists[level] = curr.next;
-                    }
-                    else {
-                        prev.next = curr.next;
-                    }
-                    break;
                 }
-                prev = curr;
-                curr = curr.next;
+                else {
+                    prev.next = curr.next;
+                }
+                return true;
             }
-
-            if (!found) {
-                break;
-            }
-
-            if (buddy < offset) {
-                offset = buddy;
-            }
-
-            size *= 2;
-            level++;
+            prev = curr;
+            curr = curr.next;
         }
-
-        addFreeBlock(size, offset);
-
+        return false;
     }
-
-
-    
-
-    
-
-    /**
-     * Get back a copy of a stored record
-     * 
-     * @param h
-     *            The handle to record
-     * 
-     * @return The copy of record bytes
-     */
-    public byte[] getRecord(MemHandle h) {
-        byte[] bye = new byte[h.getLength()];
-        for (int i = 0; i < h.getLength(); i++) {
-            bye[i] = memPool[h.getStart() + i];
-        }
-        return bye;
-    }
-
-
-    /**
-     * Print free block info.
-     * 
-     * @return The free block info.
-     */
-    public String printBlocks() {
-        if (nextFree == memPool.length) {
-            return "No free blocks available.";
-        }
-        return (memPool.length - nextFree) + " bytes free";
-    }
-    // ----------------------------------------------------------------
-    // helper methods
-
-// /*
-// * Allocates a block of the input size.
-// */
-// private int alloc(int size) {
-// int level = log2(size);
-// if (level < 0) {
-// return -1;
-// }
-// }
 
 
     /**
@@ -279,8 +271,48 @@ public class MemManager {
 
         addFreeBlock(oldSize, oldSize);
 ///
-        alertExpand.append("Memory pool expanded to ").append(newSize).append(
-            " bytes\r\n");
+        alertExpand.append("Memory pool expanded to be ").append(newSize)
+            .append(" bytes\r\n");
+    }
+
+
+    /**
+     * Find the smallest level for 2^level >= length.
+     * 
+     * @param length
+     *            The record length in bytes.
+     * 
+     * @return The level.
+     */
+    private int smallestLevel(int length) {
+        int level = 0;
+        int size = 1;
+
+        while (size < length) {
+            size = size * 2;
+            level = level + 1;
+
+        }
+
+        return level;
+    }
+
+
+    /**
+     * Determine the block size for level.
+     * 
+     * @param level
+     *            The level in the free list.
+     * 
+     * @return The block size.
+     */
+    private int blockSize(int level) {
+        int size = 1;
+        for (int i = 0; i < level; i++) {
+            size = size * 2;
+
+        }
+        return size;
     }
 
 
@@ -300,19 +332,18 @@ public class MemManager {
         return lvl;
     }
 
-
-    private int power(int num, int pow) {
-        if (num == 0) {
-            return 0;
-        }
-        int total = 1;
-        while (pow > 0) {
-            total = total * num;
-            pow -= 1;
-        }
-        return total;
-
-    }
+// private int power(int num, int pow) {
+// if (num == 0) {
+// return 0;
+// }
+// int total = 1;
+// while (pow > 0) {
+// total = total * num;
+// pow -= 1;
+// }
+// return total;
+//
+// }
 
     // ----------------------------------------------------------------
     /**
@@ -325,11 +356,12 @@ public class MemManager {
         Node(int off) {
             offset = off;
         }
-
-
-        public void setNext(Node nextNode) {
-            next = nextNode;
-        }
     }
-
 }
+
+//
+//        public void setNext(Node nextNode) {
+//            next = nextNode;
+//        }
+//    }
+
