@@ -235,9 +235,10 @@ public class SongsDB implements Songs {
 
     /**
      * Determine if number is power of two.
-     * * @param num
-     * The number.
-     * * @return True if is power of 2, false if not.
+     * 
+     * @param num
+     *            The number.
+     * @return True if is power of 2, false if not.
      */
     private boolean isPowerOfTwo(int num) {
         if (num <= 0) {

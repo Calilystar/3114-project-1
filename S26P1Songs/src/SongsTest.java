@@ -178,7 +178,8 @@ public class SongsTest extends TestCase {
 
     /**
      * Tests instances when database is not initialized
-     * * @throws Exception
+     * 
+     * @throws Exception
      */
     public void testDBNotInit() throws Exception {
         it = new SongsDB();
@@ -192,7 +193,8 @@ public class SongsTest extends TestCase {
 
     /**
      * Tests to see when differnet things are created properly.
-     * * @throws Exception
+     * 
+     * @throws Exception
      */
     public void testProperlyCreated() throws Exception {
         it = new SongsDB();
@@ -208,7 +210,8 @@ public class SongsTest extends TestCase {
 
     /**
      * Test print when there are bad inputs.
-     * * @throws Exception
+     * 
+     * @throws Exception
      */
     public void testPrintBadInput() throws Exception {
         it = new SongsDB();
@@ -223,7 +226,8 @@ public class SongsTest extends TestCase {
 
     /**
      * Tests insert when there are bad inputs.
-     * * @throws Exception
+     * 
+     * @throws Exception
      */
     public void testInsertBadInput() throws Exception {
         it = new SongsDB();
@@ -243,7 +247,8 @@ public class SongsTest extends TestCase {
 
     /**
      * Tests remove when there are bad inputs.
-     * * @throws Exception
+     * 
+     * @throws Exception
      */
     public void testRemoveBadInputs() throws Exception {
         it = new SongsDB();
@@ -261,7 +266,8 @@ public class SongsTest extends TestCase {
 
     /**
      * Tests remove when there is bad type.
-     * * @throws Exception
+     * 
+     * @throws Exception
      */
     public void testRemoveBadType() throws Exception {
         it = new SongsDB();
@@ -275,7 +281,8 @@ public class SongsTest extends TestCase {
 
     /**
      * Tests print when there is nothing to print.
-     * * @throws Exception
+     * 
+     * @throws Exception
      */
     public void testPrintNothing() throws Exception {
         it = new SongsDB();
@@ -289,7 +296,8 @@ public class SongsTest extends TestCase {
 
     /**
      * Test when there are duplicate artists.
-     * * @throws Exception
+     * 
+     * @throws Exception
      */
     public void testDuplicateArtists() throws Exception {
         it = new SongsDB();
@@ -304,7 +312,8 @@ public class SongsTest extends TestCase {
 
     /**
      * * Tests when there are duplicate songs.
-     * * @throws Exception
+     * 
+     * @throws Exception
      */
     public void testDuplicateSongs() throws Exception {
         it = new SongsDB();
@@ -319,7 +328,8 @@ public class SongsTest extends TestCase {
 
     /**
      * Tests deleting twice.
-     * * @throws Exception
+     * 
+     * @throws Exception
      */
     public void testDeleteTwice() throws Exception {
         it = new SongsDB();
@@ -340,7 +350,8 @@ public class SongsTest extends TestCase {
 
     /**
      * Tests clear.
-     * * @throws Exception
+     * 
+     * @throws Exception
      */
     public void testClear() throws Exception {
         it = new SongsDB();
@@ -354,7 +365,8 @@ public class SongsTest extends TestCase {
 
     /**
      * Tests multiple blocks in hash.
-     * * @throws Exception
+     * 
+     * @throws Exception
      */
     public void testHashMultiBlock() throws Exception {
         it = new SongsDB();
@@ -367,7 +379,8 @@ public class SongsTest extends TestCase {
 
     /**
      * Tests quadratic probing.
-     * * @throws Exception
+     * 
+     * @throws Exception
      */
     public void testQuadraticProbing() throws Exception {
         it = new SongsDB();
@@ -383,7 +396,8 @@ public class SongsTest extends TestCase {
 
     /**
      * Tests insert.
-     * * @throws Exception
+     * 
+     * @throws Exception
      */
     public void testInsertLogic() throws Exception {
         it = new SongsDB();
@@ -398,7 +412,8 @@ public class SongsTest extends TestCase {
 
     /**
      * Tests collisions and probing.
-     * * @throws Exception
+     * 
+     * @throws Exception
      */
     public void testProbingAndCollisions() throws Exception {
         it = new SongsDB();
@@ -414,7 +429,8 @@ public class SongsTest extends TestCase {
 
     /**
      * Tests MemManager release logic specifically for buddy calculations
-     * * @throws Exception
+     * 
+     * @throws Exception
      */
     public void testBuddyMergeLogic() throws Exception {
         it = new SongsDB();
@@ -456,7 +472,8 @@ public class SongsTest extends TestCase {
 
     /**
      * Tests inserting a duplicate record.
-     * * @throws Exception
+     * 
+     * @throws Exception
      */
     public void testInsertDuplicate() throws Exception {
         it = new SongsDB();
@@ -472,7 +489,8 @@ public class SongsTest extends TestCase {
 
     /**
      * Tests that a tombstone is recorded and reused
-     * * @throws Exception
+     * 
+     * @throws Exception
      */
     public void testTombstoneReuse() throws Exception {
         it = new SongsDB();
@@ -491,7 +509,8 @@ public class SongsTest extends TestCase {
 
     /**
      * Test to reproduce the index -4 crash
-     * * @throws Exception
+     * 
+     * @throws Exception
      */
     public void testNegativeIndexCrash() throws Exception {
 
@@ -510,7 +529,8 @@ public class SongsTest extends TestCase {
 
     /**
      * load factor over 50%
-     * * @throws Exception
+     * 
+     * @throws Exception
      */
     public void testResizeTriggered() throws Exception {
         SongsDB db = new SongsDB();
@@ -536,9 +556,10 @@ public class SongsTest extends TestCase {
 
     /**
      * Remainder is exactly 0
-     * * @throws Exception
+     * 
+     * @throws Exception
      */
-    public void testHashRemainderZero() {
+    public void testHashRemainderZero() throws Exception {
         Hash myHash = new Hash(10, new MemManager(64));
         int result = myHash.h("d", 10);
         assertEquals("Hash of 'd' mod 10 should be 0", 0, result);
@@ -547,9 +568,10 @@ public class SongsTest extends TestCase {
 
     /**
      * Remainder is > 0
-     * * @throws Exception
+     * 
+     * @throws Exception
      */
-    public void testHashRemainderPositive() {
+    public void testHashRemainderPositive() throws Exception {
         Hash myHash = new Hash(10, new MemManager(64));
         int result = myHash.h("e", 10);
         assertEquals("Hash of 'e' mod 10 should be 1", 1, result);
@@ -558,9 +580,10 @@ public class SongsTest extends TestCase {
 
     /**
      * Remainder > 0
-     * * @throws Exception
+     * 
+     * @throws Exception
      */
-    public void testHashRemainderPositiveEight() {
+    public void testHashRemainderPositiveEight() throws Exception {
         Hash myHash = new Hash(8, new MemManager(64));
         int result = myHash.h("a", 8);
         assertEquals("Hash of 'a' mod 8 should be 1", 1, result);
@@ -569,9 +592,10 @@ public class SongsTest extends TestCase {
 
     /**
      * Test specifically for negative 'm' input
-     * * @throws Exception
+     * 
+     * @throws Exception
      */
-    public void testHashNegativeCapacity() {
+    public void testHashNegativeCapacity() throws Exception {
         Hash myHash = new Hash(10, new MemManager(64));
         int result = myHash.h("a", -4);
         assertTrue("Result must be non-negative", result >= 0);
@@ -582,7 +606,8 @@ public class SongsTest extends TestCase {
 
     /**
      * Test logic where search < freeLists.length
-     * * @throws Exception
+     * 
+     * @throws Exception
      */
     public void testInsertNoExpansion() throws Exception {
         it = new SongsDB();
@@ -598,7 +623,8 @@ public class SongsTest extends TestCase {
     /**
      * forces the expansion to see why we're failing the edge case test in the
      * reference tests.
-     * * @throws Exception
+     * 
+     * @throws Exception
      */
     public void testForceExpansion() throws Exception {
         it = new SongsDB();
@@ -614,7 +640,8 @@ public class SongsTest extends TestCase {
 
     /**
      * Coverage: Hash.insert returns 0
-     * * @throws Exception
+     * 
+     * @throws Exception
      */
     public void testInsertReturnZero() throws Exception {
         it = new SongsDB();
@@ -628,7 +655,8 @@ public class SongsTest extends TestCase {
 
     /**
      * Coverage: Hash.insert returns 1
-     * * @throws Exception
+     * 
+     * @throws Exception
      */
     public void testInsertReturnOne() throws Exception {
         it = new SongsDB();
@@ -643,7 +671,8 @@ public class SongsTest extends TestCase {
 
     /**
      * Coverage: Hash.insert returns 2
-     * * @throws Exception
+     * 
+     * @throws Exception
      */
     public void testInsertReturnTwo() throws Exception {
         it = new SongsDB();
@@ -660,7 +689,8 @@ public class SongsTest extends TestCase {
 
     /**
      * Targets the 'else { prev.next = curr.next; }' branch
-     * * @throws Exception
+     * 
+     * @throws Exception
      */
     public void testRemoveFreeBlockWithPreviousNode() throws Exception {
         it = new SongsDB();

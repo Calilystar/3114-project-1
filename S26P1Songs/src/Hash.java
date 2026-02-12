@@ -38,23 +38,24 @@ public class Hash {
      *
      * @param s
      *            The string that we are hashing
-     * @param M
+     * @param m
      *            The size of the hash table
      * @return The home slot for that string
      */
-    public int h(String s, int M) {
+    public int h(String s, int m) {
         long sum = 0, mul = 1;
         for (int i = 0; i < s.length(); i++) {
             mul = (i % 4 == 0) ? 1 : mul * 256;
             sum += s.charAt(i) * mul;
         }
-        return (int)(Math.abs(sum) % M);
+        return (int)(Math.abs(sum) % m);
     }
 
 
     /**
      * Track if table resized before inserting.
-     * * @return True if inserting one more element will cause resize.
+     * 
+     * @return True if inserting one more element will cause resize.
      */
     public boolean willResize() {
         return (size + 1) * 2 > capacity;
@@ -63,8 +64,9 @@ public class Hash {
 
     /**
      * Search for a key in the table, stop when it hits a null slot.
-     * * @param key
-     * The string key we want to find
+     * 
+     * @param key
+     *            The string key we want to find
      * 
      * @return The index where the key exists, -1 if it does not.
      */
@@ -92,8 +94,9 @@ public class Hash {
 
     /**
      * Insert a key into the hash table
-     * * @param key
-     * The key to insert
+     * 
+     * @param key
+     *            The key to insert
      * 
      * @param handle
      *            The handle to record already stored in mem manager.
@@ -155,9 +158,10 @@ public class Hash {
 
     /**
      * Remove a key from the table
-     * * @param key
-     * The key to remove
-     * * @return The removed handle
+     * 
+     * @param key
+     *            The key to remove
+     * @return The removed handle
      */
     public MemHandle remove(String key) {
         int index = find(key);
@@ -177,9 +181,10 @@ public class Hash {
 
     /**
      * Print the contents of the hash table.
-     * * @param isArtist
-     * True if table stores artists, false if it stores songs.
-     * * @return The string representation of the table
+     * 
+     * @param isArtist
+     *            True if table stores artists, false if it stores songs.
+     * @return The string representation of the table
      */
     public String print(boolean isArtist) {
         StringBuilder sb = new StringBuilder();
@@ -253,10 +258,11 @@ public class Hash {
 
     /**
      * Put an existing handle into the table when rehashing.
-     * * @param key
-     * The string for hashing.
-     * * @param hand
-     * The existing handle to place.
+     * 
+     * @param key
+     *            The string for hashing.
+     * @param hand
+     *            The existing handle to place.
      */
     private void placeExistingHandle(String key, MemHandle hand) {
         int home = h(key, capacity);
@@ -276,9 +282,10 @@ public class Hash {
 
     /**
      * Convert stored record back into string.
-     * * @param hand
-     * The handle that references the record in the memory pool.
-     * * @return The string that was stored.
+     * 
+     * @param hand
+     *            The handle that references the record in the memory pool.
+     * @return The string that was stored.
      */
     private String handleToString(MemHandle hand) {
         // get bytes from memory manager

@@ -21,7 +21,7 @@ public class MemManager {
      * Create a new MemManager object.
      *
      * @param startSize
-     * Initial size of the memory pool
+     *            Initial size of the memory pool
      */
     public MemManager(int startSize) {
         memPool = new byte[startSize];
@@ -35,9 +35,10 @@ public class MemManager {
 
     /**
      * Store a record and return a handle to it
-     * * @param info
-     * The byte array of the record
-     * * @return The MemHandle where it is stored
+     * 
+     * @param info
+     *            The byte array of the record
+     * @return The MemHandle where it is stored
      */
     public MemHandle insert(byte[] info) {
         int target = smallestLevel(info.length);
@@ -77,7 +78,8 @@ public class MemManager {
 
     /**
      * Get expansion message
-     * * @return The expansion message.
+     * 
+     * @return The expansion message.
      */
     public String getExpandMethod() {
         String msg = alertExpand.toString();
@@ -88,8 +90,9 @@ public class MemManager {
 
     /**
      * Release the space associated with a record
-     * * @param h
-     * The handle to record to remove
+     * 
+     * @param h
+     *            The handle to record to remove
      */
     public void release(MemHandle h) {
         int lvl = smallestLevel(h.getLength());
@@ -111,9 +114,9 @@ public class MemManager {
             }
 
             size *= 2; // Double the size for the next level
-            lvl++;     // Move up the level index
+            lvl++; // Move up the level index
         }
-        
+
         // Final step: Add whatever block we ended up with (merged or not)
         addFreeBlock(size, offset);
     }
@@ -121,9 +124,10 @@ public class MemManager {
 
     /**
      * Get back a copy of a stored record
-     * * @param h
-     * The handle to record
-     * * @return The copy of record bytes
+     * 
+     * @param h
+     *            The handle to record
+     * @return The copy of record bytes
      */
     public byte[] getRecord(MemHandle h) {
         byte[] bye = new byte[h.getLength()];
@@ -134,7 +138,8 @@ public class MemManager {
 
     /**
      * Print free block info.
-     * * @return The free block info.
+     * 
+     * @return The free block info.
      */
     public String printBlocks() {
         StringBuilder sb = new StringBuilder();
@@ -174,10 +179,12 @@ public class MemManager {
 
     /**
      * Add a free block to the appropriate free list.
-     * * @param blockSize
-     * The size of the free block.
+     * 
+     * @param blockSize
+     *            The size of the free block.
+     * 
      * @param offset
-     * The starting offset of the free block.
+     *            The starting offset of the free block.
      */
     private void addFreeBlock(int blockSize, int offset) {
 
@@ -212,10 +219,12 @@ public class MemManager {
 
     /**
      * Removes free block from a level list.
-     * * @param level
-     * The level list.
-     * * @param offset
-     * The offset of the block to remove.
+     * 
+     * @param level
+     *            The level list.
+     * @param offset
+     *            The offset of the block to remove.
+     * 
      * @return True if the block was removed, false if not.
      */
     private boolean removeFreeBlock(int level, int offset) {
@@ -266,9 +275,10 @@ public class MemManager {
 
     /**
      * Find the smallest level for 2^level >= length.
-     * * @param length
-     * The record length in bytes.
-     * * @return The level.
+     * 
+     * @param length
+     *            The record length in bytes.
+     * @return The level.
      */
     private int smallestLevel(int length) {
         int level = 0;
@@ -286,9 +296,10 @@ public class MemManager {
 
     /**
      * Determine the block size for level.
-     * * @param level
-     * The level in the free list.
-     * * @return The block size.
+     * 
+     * @param level
+     *            The level in the free list.
+     * @return The block size.
      */
     private int blockSize(int level) {
         int size = 1;
@@ -302,9 +313,11 @@ public class MemManager {
 
     /**
      * Compute log2 of some int for power of two sizes.
+     * 
+     * @return The log2 value
      */
     private int log2(int x) {
-        
+
         int lvl = 0;
         int y = x;
         while (y > 1) {
