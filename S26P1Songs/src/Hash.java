@@ -44,7 +44,7 @@ public class Hash {
      */
     public int h(String s, int m) {
 
-        if(m < 0) {
+        if (m < 0) {
             m = 0 - m;
         }
         long sum = 0;
@@ -54,22 +54,16 @@ public class Hash {
             sum += s.charAt(i) * mult;
         }
 
-
         long quotient = sum / m;
 
-
         long remainder = sum - (quotient * m);
-
 
         if (remainder < 0) {
             remainder = remainder + m;
         }
 
-        return (int) remainder;
+        return (int)remainder;
     }
-
-
-
 
 
     /**
@@ -148,11 +142,12 @@ public class Hash {
             if (!placed && curr == null) {
                 if (tomb1 != -1) {
                     table[tomb1] = handle;
-                } else {
+                }
+                else {
                     table[index] = handle;
                 }
                 size++;
-                placed = true; 
+                placed = true;
                 // NO RETURN HERE. We let the loop finish.
             }
 
@@ -290,24 +285,24 @@ public class Hash {
             if (!found && table[index] == null) {
                 table[index] = hand;
                 size++;
-                found = true; 
+                found = true;
             }
         }
     }
-//    private void placeExistingHandle(String key, MemHandle hand) {
-//        int home = h(key, capacity);
+// private void placeExistingHandle(String key, MemHandle hand) {
+// int home = h(key, capacity);
 //
-//        // probe until null slot is found
-//        for (int i = 0; i < capacity; i++) {
-//            int index = (home + i * i) % capacity;
-//            // place if empty
-//            if (table[index] == null) {
-//                table[index] = hand;
-//                size++;
-//                return;
-//            }
-//        }
-//    }
+// // probe until null slot is found
+// for (int i = 0; i < capacity; i++) {
+// int index = (home + i * i) % capacity;
+// // place if empty
+// if (table[index] == null) {
+// table[index] = hand;
+// size++;
+// return;
+// }
+// }
+// }
 
 
     /**

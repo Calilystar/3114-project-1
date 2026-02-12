@@ -6,7 +6,7 @@ import student.TestCase;
  */
 public class SongsTest extends TestCase {
     private Songs it;
-    
+
     /**
      * Sets up the tests that follow. In general, used for initialization
      */
@@ -338,8 +338,8 @@ public class SongsTest extends TestCase {
         it.insert("artist", "song");
         assertFuzzyEquals("|artist| is removed from the Artist database", it
             .remove("artist", "artist"));
-        assertFuzzyEquals("|song| is removed from the Song database", it
-            .remove("song", "song"));
+        assertFuzzyEquals("|song| is removed from the Song database", it.remove(
+            "song", "song"));
 
         assertFuzzyEquals("|artist| does not exist in the Artist database", it
             .remove("artist", "artist"));
@@ -347,7 +347,8 @@ public class SongsTest extends TestCase {
             .remove("song", "song"));
 
     }
-    
+
+
     /**
      * Tests clear.
      * 
@@ -361,8 +362,8 @@ public class SongsTest extends TestCase {
         assertTrue(it.print("artist").contains("total artists: 0"));
         assertTrue(it.print("song").contains("total songs: 0"));
     }
-    
-    
+
+
     /**
      * Tests multiple blocks in hash.
      * 
@@ -371,12 +372,12 @@ public class SongsTest extends TestCase {
     public void testHashMultiBlock() throws Exception {
         it = new SongsDB();
         it.create(10, 64);
-       
-        it.insert("ABCDE", "SongA"); 
+
+        it.insert("ABCDE", "SongA");
         assertTrue(it.print("artist").contains("ABCDE"));
     }
-    
-    
+
+
     /**
      * Tests quadratic probing.
      * 
@@ -384,16 +385,16 @@ public class SongsTest extends TestCase {
      */
     public void testQuadraticProbing() throws Exception {
         it = new SongsDB();
-        it.create(4, 64); 
-        
-        
+        it.create(4, 64);
+
         it.insert("a", "song1");
-        it.insert("i", "song2"); 
-        
-        assertFuzzyEquals("|i| is removed from the Artist database", it.remove("artist", "i"));
+        it.insert("i", "song2");
+
+        assertFuzzyEquals("|i| is removed from the Artist database", it.remove(
+            "artist", "i"));
     }
-    
-    
+
+
     /**
      * Tests insert.
      * 
@@ -403,12 +404,13 @@ public class SongsTest extends TestCase {
         it = new SongsDB();
         it.create(10, 64);
         it.insert("ArtistA", "SongA");
-        
+
         String result = it.insert("ArtistA", "SongB");
-        assertTrue(result.contains("duplicates a record already in the Artist database"));
+        assertTrue(result.contains(
+            "duplicates a record already in the Artist database"));
     }
-    
-    
+
+
     /**
      * Tests collisions and probing.
      * 
@@ -417,311 +419,310 @@ public class SongsTest extends TestCase {
     public void testProbingAndCollisions() throws Exception {
         it = new SongsDB();
         it.create(10, 64);
-        
+
         it.insert("A", "Song1");
-        it.insert("k", "Song2"); 
-        
+        it.insert("k", "Song2");
+
         String result = it.remove("artist", "k");
         assertTrue(result.contains("removed"));
     }
-    
+
+
     /**
      * Tests MemManager release logic specifically for buddy calculations
+     * 
      * @throws Exception
      */
     public void testBuddyMergeLogic() throws Exception {
         it = new SongsDB();
-        it.create(10, 64); 
-        
-        
+        it.create(10, 64);
+
         it.insert("a", "a");
-        it.insert("b", "b"); 
-        
-        
-        
+        it.insert("b", "b");
+
         it.remove("artist", "b");
         it.remove("song", "b");
-        
+
         String blocks = it.print("blocks");
         assertTrue(blocks.contains("32: 32"));
-        
-        
+
         it.remove("artist", "a");
         it.remove("song", "a");
-        
+
         blocks = it.print("blocks");
         assertTrue(blocks.contains("64: 0"));
-        
-        
-        it.insert("c", "c"); 
-        
+
+        it.insert("c", "c");
+
         it = new SongsDB();
         it.create(10, 64);
-        it.insert("x", "x"); 
-        it.remove("song", "x"); 
-        it.remove("artist", "x"); 
-        
-        
+        it.insert("x", "x");
+        it.remove("song", "x");
+        it.remove("artist", "x");
+
         it = new SongsDB();
         it.create(10, 64);
-        it.insert("A", "SongA"); 
-        it.remove("artist", "A"); 
-        
+        it.insert("A", "SongA");
+        it.remove("artist", "A");
+
         it.remove("song", "SongA");
-        
-        
+
         assertTrue(it.print("blocks").contains("64: 0"));
     }
-    
-    
+
+
     /**
      * Tests inserting a duplicate record.
+     * 
      * @throws Exception
      */
     public void testInsertDuplicate() throws Exception {
         it = new SongsDB();
         it.create(10, 64);
-        
+
         it.insert("ArtistA", "SongA");
-        
-        
-        String result = it.insert("ArtistA", "SongB"); 
-        
+
+        String result = it.insert("ArtistA", "SongB");
+
         assertTrue(result.contains("duplicates a record"));
     }
-    
+
+
     /**
      * Tests that a tombstone is recorded and reused
+     * 
      * @throws Exception
      */
     public void testTombstoneReuse() throws Exception {
         it = new SongsDB();
         it.create(10, 64);
-        
+
         it.insert("A", "Song1");
-        
+
         it.remove("artist", "A");
-        
-        
+
         it.insert("U", "Song2");
-        
+
         String output = it.print("artist");
         assertTrue(output.contains("5: |U|"));
     }
-    
-    
-    
-    
-    
-    
-    
+
+
     /**
      * Test to reproduce the index -4 crash
+     * 
      * @throws Exception
      */
     public void testNegativeIndexCrash() throws Exception {
-        
-        
+
         SongsDB db = new SongsDB();
         db.create(8, 32);
 
-        db.insert("h", "SongA"); 
-        
-        db.insert("p", "SongB"); 
-        
+        db.insert("h", "SongA");
 
-        db.insert("x", "SongC"); 
-        
+        db.insert("p", "SongB");
+
+        db.insert("x", "SongC");
+
         System.out.println("Success: No crash on 3rd collision.");
     }
-    
+
+
     /**
      * load factor over 50%
+     * 
      * @throws Exception
      */
     public void testResizeTriggered() throws Exception {
         SongsDB db = new SongsDB();
-        
-        
-        db.create(4, 256); 
 
-        
+        db.create(4, 256);
+
         db.insert("Artist A", "Song A");
 
-        
         db.insert("Artist B", "Song B");
 
-        
         String result = db.insert("Artist C", "Song C");
 
-        
-        assertTrue("Artist table should have doubled", 
-            result.contains("Artist hash table size doubled"));
-            
-        
-        assertTrue("Song table should have doubled", 
-            result.contains("Song hash table size doubled"));
-            
-        
-        assertTrue(result.contains("|Artist C| is added to the Artist database"));
+        assertTrue("Artist table should have doubled", result.contains(
+            "Artist hash table size doubled"));
+
+        assertTrue("Song table should have doubled", result.contains(
+            "Song hash table size doubled"));
+
+        assertTrue(result.contains(
+            "|Artist C| is added to the Artist database"));
     }
-    
+
+
     /**
      * Remainder is exactly 0
+     * 
      * @throws Exception
      */
     public void testHashRemainderZero() {
         // Create a Hash with size 10
         Hash myHash = new Hash(10, new MemManager(64));
-        
-        // 'd' is ASCII 100. 
+
+        // 'd' is ASCII 100.
         // Manual Math: 100 - (10 * 10) = 0.
         int result = myHash.h("d", 10);
-        
+
         assertEquals("Hash of 'd' mod 10 should be 0", 0, result);
     }
 
+
     /**
      * Remainder is > 0
+     * 
      * @throws Exception
      */
     public void testHashRemainderPositive() {
         Hash myHash = new Hash(10, new MemManager(64));
-        
-        
+
         int result = myHash.h("e", 10);
-        
+
         assertEquals("Hash of 'e' mod 10 should be 1", 1, result);
     }
-    
+
+
     /**
      * Remainder > 0
+     * 
      * @throws Exception
      */
     public void testHashRemainderPositiveEight() {
         Hash myHash = new Hash(8, new MemManager(64));
-        
-        
+
         int result = myHash.h("a", 8);
-        
+
         assertEquals("Hash of 'a' mod 8 should be 1", 1, result);
     }
-    
-    
+
+
     /**
      * Test specifically for negative 'm' input
+     * 
      * @throws Exception
      */
     public void testHashNegativeCapacity() {
         Hash myHash = new Hash(10, new MemManager(64));
-        
+
         int result = myHash.h("a", -4);
-        
+
         assertTrue("Result must be non-negative", result >= 0);
         assertTrue("Result must be less than 4", result < 4);
         assertEquals("Should behave like mod 4", 1, result);
     }
-    
-    
-    
+
+
     /**
      * Test logic where search < freeLists.length
+     * 
      * @throws Exception
      */
     public void testInsertNoExpansion() throws Exception {
         it = new SongsDB();
         it.create(10, 256);
 
-        
         String result = it.insert("ArtistA", "SongA");
 
-        assertFalse("Should not expand pool", 
-            result.contains("Memory pool expanded"));
-            
+        assertFalse("Should not expand pool", result.contains(
+            "Memory pool expanded"));
+
         String blocks = it.print("blocks");
-        assertFalse(blocks.contains("256: 0")); 
+        assertFalse(blocks.contains("256: 0"));
     }
-    
+
+
     /**
-     * forces the expansion to see why we're failing the edge case test in the reference tests.
+     * forces the expansion to see why we're failing the edge case test in the
+     * reference tests.
+     * 
      * @throws Exception
      */
     public void testForceExpansion() throws Exception {
         it = new SongsDB();
         it.create(10, 32);
-        it.insert("A", "S"); 
+        it.insert("A", "S");
 
-        
         String longString = "12345678901234567890123456789012";
 
-        
         String result = it.insert("B", longString);
 
         System.out.println("Debug Output: " + result);
 
-        assertTrue("Manager should expand when a block size is requested that is no longer available", 
+        assertTrue(
+            "Manager should expand when a block size is requested that is no longer available",
             result.contains("Memory pool expanded"));
     }
-    
+
+
     /**
      * Coverage: Hash.insert returns 0
+     * 
      * @throws Exception
      */
     public void testInsertReturnZero() throws Exception {
         it = new SongsDB();
         it.create(10, 64);
-        
+
         it.insert("Daft Punk", "One More Time");
         String result = it.insert("Daft Punk", "Harder Better Faster Stronger");
-        
-        assertTrue("Should detect duplicate artist", 
-            result.contains("duplicates a record already in the Artist database"));
+
+        assertTrue("Should detect duplicate artist", result.contains(
+            "duplicates a record already in the Artist database"));
     }
-    
+
+
     /**
      * Coverage: Hash.insert returns 1
+     * 
      * @throws Exception
      */
     public void testInsertReturnOne() throws Exception {
         it = new SongsDB();
         it.create(10, 64);
-        
+
         String result = it.insert("Radiohead", "Creep");
-        
-        assertFalse("Should not resize on first insert", 
-            result.contains("Artist hash table size doubled"));
-        assertTrue("Should confirm addition", 
-            result.contains("|Radiohead| is added to the Artist database"));
+
+        assertFalse("Should not resize on first insert", result.contains(
+            "Artist hash table size doubled"));
+        assertTrue("Should confirm addition", result.contains(
+            "|Radiohead| is added to the Artist database"));
     }
-    
+
+
     /**
      * Coverage: Hash.insert returns 2
+     * 
      * @throws Exception
      */
     public void testInsertReturnTwo() throws Exception {
         it = new SongsDB();
-        it.create(4, 128); 
-        
-        it.insert("Artist1", "Song1"); 
-        
-        it.insert("Artist2", "Song2"); 
-        
-        
+        it.create(4, 128);
+
+        it.insert("Artist1", "Song1");
+
+        it.insert("Artist2", "Song2");
+
         String result = it.insert("Artist3", "Song3");
-        
-        assertTrue("Should report hash table size doubled", 
-            result.contains("Artist hash table size doubled"));
-        assertTrue("Should report song table size doubled", 
-            result.contains("Song hash table size doubled"));
+
+        assertTrue("Should report hash table size doubled", result.contains(
+            "Artist hash table size doubled"));
+        assertTrue("Should report song table size doubled", result.contains(
+            "Song hash table size doubled"));
     }
-    
+
+
     /**
      * Targets the 'else { prev.next = curr.next; }' branch
+     * 
      * @throws Exception
      */
     public void testRemoveFreeBlockWithPreviousNode() throws Exception {
         it = new SongsDB();
-        it.create(10, 128); 
+        it.create(10, 128);
 
         it.insert("A", "S1");
         it.insert("B", "S2");
@@ -734,40 +735,43 @@ public class SongsTest extends TestCase {
         it.remove("artist", "D");
 
         String blocks = it.print("blocks");
-        assertFalse("Offset 32 should have been removed via prev.next", 
-                    blocks.contains("16: 32"));
+        assertFalse("Offset 32 should have been removed via prev.next", blocks
+            .contains("16: 32"));
     }
-    
-    
-    
+
+
     /**
-    
-    Tests resize when old table has tombstone and live entries
-    @throws Exception*/
+     * 
+     * Tests resize when old table has tombstone and live entries
+     * 
+     * @throws Exception
+     */
     public void testResizeSkipsTombstonesAndNulls() throws Exception {
         it = new SongsDB();
         it.create(4, 64);
 
-            it.insert("A", "S1");
-            it.insert("B", "S2");
+        it.insert("A", "S1");
+        it.insert("B", "S2");
 
-            it.remove("artist", "A");
+        it.remove("artist", "A");
 
-            it.insert("C", "S3");
+        it.insert("C", "S3");
 
-            String result = it.insert("D", "S4");
+        String result = it.insert("D", "S4");
 
-            assertTrue(result.contains("Artist hash table size doubled"));
+        assertTrue(result.contains("Artist hash table size doubled"));
 
-            String output = it.print("artist");
-            assertFalse(output.contains("|A|"));
-            assertTrue(output.contains("|B|"));
-            assertTrue(output.contains("|C|"));
-        }
-    
+        String output = it.print("artist");
+        assertFalse(output.contains("|A|"));
+        assertTrue(output.contains("|B|"));
+        assertTrue(output.contains("|C|"));
+    }
+
+
     /**
      * Directly tests the Hash class to ensure insert returns 0
      * when a duplicate is attempted
+     * 
      * @throws Exception
      */
     public void testHashDirectDuplicate() {
@@ -785,50 +789,51 @@ public class SongsTest extends TestCase {
         int result2 = testHash.insert(key, handle);
         assertEquals(0, result2);
     }
-    
+
+
     /**
-     * Tests MemManager with size 0 to hit the 
+     * Tests MemManager with size 0 to hit the
      * "if (blockSize <= 0)" branch in addFreeBlock
+     * 
      * @throws Exception
      */
     public void testMemManagerZeroSize() {
 
         MemManager m = new MemManager(0);
-        
 
         assertNotNull(m);
 
-        String output = m.printBlocks(); 
+        String output = m.printBlocks();
     }
-    
+
+
     /**
      * Tests the traversal of the free list in addFreeBlock
+     * 
      * @throws Exception
      */
     public void testAddFreeBlockTraversal() {
-        MemManager m = new MemManager(256); 
-        byte[] data = new byte[32]; 
+        MemManager m = new MemManager(256);
+        byte[] data = new byte[32];
 
-
-        MemHandle h1 = m.insert(data); 
-        MemHandle h2 = m.insert(data); 
+        MemHandle h1 = m.insert(data);
+        MemHandle h2 = m.insert(data);
         MemHandle h3 = m.insert(data);
-        MemHandle h4 = m.insert(data); 
+        MemHandle h4 = m.insert(data);
         MemHandle h5 = m.insert(data);
-        MemHandle h6 = m.insert(data); 
+        MemHandle h6 = m.insert(data);
 
         m.release(h1);
-        
 
         m.release(h3);
 
         m.release(h5);
-        
 
         String output = m.printBlocks();
         assertTrue(output.contains("32: 0 64 128"));
     }
-    
+
+
     /**
      * Tests inserting a block into the middle of the free list
      */
@@ -836,43 +841,24 @@ public class SongsTest extends TestCase {
         MemManager m = new MemManager(256);
         byte[] data = new byte[32];
 
-        MemHandle h0   = m.insert(data); 
-        MemHandle h32  = m.insert(data); 
-        MemHandle h64  = m.insert(data); 
-        MemHandle h96  = m.insert(data); 
-        MemHandle h128 = m.insert(data); 
+        MemHandle h0 = m.insert(data);
+        MemHandle h32 = m.insert(data);
+        MemHandle h64 = m.insert(data);
+        MemHandle h96 = m.insert(data);
+        MemHandle h128 = m.insert(data);
         MemHandle h160 = m.insert(data);
-        MemHandle h192 = m.insert(data); 
+        MemHandle h192 = m.insert(data);
         MemHandle h224 = m.insert(data);
 
-
-        
         m.release(h0);
         m.release(h64);
         m.release(h192);
-        
 
         m.release(h128);
 
         String output = m.printBlocks();
-        assertTrue("Should contain ordered blocks 0, 64, 128, 192", 
-            output.contains("32: 0 64 128 192"));
+        assertTrue("Should contain ordered blocks 0, 64, 128, 192", output
+            .contains("32: 0 64 128 192"));
     }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
 
-
-    
-    
-    
 }
-
