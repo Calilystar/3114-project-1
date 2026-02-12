@@ -765,6 +765,113 @@ public class SongsTest extends TestCase {
             assertTrue(output.contains("|C|"));
         }
     
+    /**
+     * Directly tests the Hash class to ensure insert returns 0
+     * when a duplicate is attempted
+     * @throws Exception
+     */
+    public void testHashDirectDuplicate() {
+
+        MemManager testMan = new MemManager(64);
+        Hash testHash = new Hash(10, testMan);
+
+        String key = "TestKey";
+        byte[] bytes = key.getBytes();
+        MemHandle handle = testMan.insert(bytes);
+
+        int result1 = testHash.insert(key, handle);
+        assertEquals(1, result1);
+
+        int result2 = testHash.insert(key, handle);
+        assertEquals(0, result2);
+    }
+    
+    /**
+     * Tests MemManager with size 0 to hit the 
+     * "if (blockSize <= 0)" branch in addFreeBlock
+     * @throws Exception
+     */
+    public void testMemManagerZeroSize() {
+
+        MemManager m = new MemManager(0);
+        
+
+        assertNotNull(m);
+
+        String output = m.printBlocks(); 
+    }
+    
+    /**
+     * Tests the traversal of the free list in addFreeBlock
+     * @throws Exception
+     */
+    public void testAddFreeBlockTraversal() {
+        MemManager m = new MemManager(256); 
+        byte[] data = new byte[32]; 
+
+
+        MemHandle h1 = m.insert(data); 
+        MemHandle h2 = m.insert(data); 
+        MemHandle h3 = m.insert(data);
+        MemHandle h4 = m.insert(data); 
+        MemHandle h5 = m.insert(data);
+        MemHandle h6 = m.insert(data); 
+
+        m.release(h1);
+        
+
+        m.release(h3);
+
+        m.release(h5);
+        
+
+        String output = m.printBlocks();
+        assertTrue(output.contains("32: 0 64 128"));
+    }
+    
+    /**
+     * Tests inserting a block into the middle of the free list
+     */
+    public void testAddFreeBlockMiddleInsertion() {
+        MemManager m = new MemManager(256);
+        byte[] data = new byte[32];
+
+        MemHandle h0   = m.insert(data); 
+        MemHandle h32  = m.insert(data); 
+        MemHandle h64  = m.insert(data); 
+        MemHandle h96  = m.insert(data); 
+        MemHandle h128 = m.insert(data); 
+        MemHandle h160 = m.insert(data);
+        MemHandle h192 = m.insert(data); 
+        MemHandle h224 = m.insert(data);
+
+
+        
+        m.release(h0);
+        m.release(h64);
+        m.release(h192);
+        
+
+        m.release(h128);
+
+        String output = m.printBlocks();
+        assertTrue("Should contain ordered blocks 0, 64, 128, 192", 
+            output.contains("32: 0 64 128 192"));
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+
+    
     
     
 }

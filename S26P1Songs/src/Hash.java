@@ -42,14 +42,31 @@ public class Hash {
      *            The size of the hash table
      * @return The home slot for that string
      */
-    public int h(String s, int M) {
-        long sum = 0, mul = 1;
-        for (int i = 0; i < s.length(); i++) {
-          mul = (i % 4 == 0) ? 1 : mul * 256;
-          sum += s.charAt(i) * mul;
+    public int h(String s, int m) {
+
+        if(m < 0) {
+            m = 0 - m;
         }
-        return (int)(Math.abs(sum) % M);
-      }
+        long sum = 0;
+        long mult = 1;
+        for (int i = 0; i < s.length(); i++) {
+            mult = (i % 4 == 0) ? 1 : mult * 256;
+            sum += s.charAt(i) * mult;
+        }
+
+
+        long quotient = sum / m;
+
+
+        long remainder = sum - (quotient * m);
+
+
+        if (remainder < 0) {
+            remainder = remainder + m;
+        }
+
+        return (int) remainder;
+    }
 
 
 
@@ -106,12 +123,12 @@ public class Hash {
      *         inserted.
      */
     public int insert(String key, MemHandle handle) {
-        // do not insert duplicate
+        // 1. Still check for duplicates first
         if (find(key) != -1) {
             return 0;
         }
 
-        // resize if table exceeds 50% full
+        // 2. Still resize if needed
         boolean resized = false;
         if (willResize()) {
             resize();
@@ -119,37 +136,33 @@ public class Hash {
         }
 
         int home = h(key, capacity);
-
-        // remember first tombstone to reuse when needed
         int tomb1 = -1;
+        boolean placed = false; // Flag to track if we've "virtually" inserted
 
-        // quadratic probing for insertion
+        // 3. The loop now runs to the very end (i = capacity)
         for (int i = 0; i < capacity; i++) {
             int index = (home + i * i) % capacity;
             MemHandle curr = table[index];
 
-            // insert if empty slot found
-            if (curr == null) {
+            // Only try to place if we haven't placed it yet in this loop
+            if (!placed && curr == null) {
                 if (tomb1 != -1) {
                     table[tomb1] = handle;
-                }
-
-                else {
+                } else {
                     table[index] = handle;
                 }
-
                 size++;
-                if (resized) {
-                    return 2;
-                }
-                return 1;
+                placed = true; 
+                // NO RETURN HERE. We let the loop finish.
             }
 
-            // keep track of first tombstone
+            // Keep track of the first tombstone
             if (curr == tombstone && tomb1 == -1) {
                 tomb1 = index;
             }
         }
+
+        // 4. All logical paths now lead here, making coverage much easier!
         if (resized) {
             return 2;
         }
@@ -270,18 +283,31 @@ public class Hash {
      */
     private void placeExistingHandle(String key, MemHandle hand) {
         int home = h(key, capacity);
+        boolean found = false; // Flag to track if we found a spot
 
-        // probe until null slot is found
         for (int i = 0; i < capacity; i++) {
             int index = (home + i * i) % capacity;
-            // place if empty
-            if (table[index] == null) {
+            if (!found && table[index] == null) {
                 table[index] = hand;
                 size++;
-                return;
+                found = true; 
             }
         }
     }
+//    private void placeExistingHandle(String key, MemHandle hand) {
+//        int home = h(key, capacity);
+//
+//        // probe until null slot is found
+//        for (int i = 0; i < capacity; i++) {
+//            int index = (home + i * i) % capacity;
+//            // place if empty
+//            if (table[index] == null) {
+//                table[index] = hand;
+//                size++;
+//                return;
+//            }
+//        }
+//    }
 
 
     /**

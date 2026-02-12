@@ -54,12 +54,10 @@ public class SongsDB implements Songs {
 
         }
 
-        if (inMemMan <= 0) {
-            return "Initial memory manager size must be positive";
-
-        }
-
         if (!isPowerOfTwo(inMemMan)) {
+            if (inMemMan <= 0) {
+                return "Initial memory manager size must be positive";
+            }
             return "Initial memory manager size must be a power of 2";
         }
 
