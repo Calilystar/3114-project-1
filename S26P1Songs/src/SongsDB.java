@@ -41,12 +41,10 @@ public class SongsDB implements Songs {
 
         }
 
-        if (inMemMan <= 0) {
-            return "Initial memory manager size must be positive";
-
-        }
-
         if (!isPowerOfTwo(inMemMan)) {
+            if (inMemMan <= 0) {
+                return "Initial memory manager size must be positive";
+            }
             return "Initial memory manager size must be a power of 2";
         }
 
@@ -65,7 +63,8 @@ public class SongsDB implements Songs {
 
     /**
      * Re-initialize the database
-     * * @return true on successful clear of database
+     * 
+     * @return true on successful clear of database
      */
     public boolean clear() {
 

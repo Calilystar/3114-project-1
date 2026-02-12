@@ -43,7 +43,8 @@ public class Hash {
      * @return The home slot for that string
      */
     public int h(String s, int m) {
-        long sum = 0, mul = 1;
+        long sum = 0;
+        long mul = 1;
         for (int i = 0; i < s.length(); i++) {
             mul = (i % 4 == 0) ? 1 : mul * 256;
             sum += s.charAt(i) * mul;
@@ -100,9 +101,9 @@ public class Hash {
      * 
      * @param handle
      *            The handle to record already stored in mem manager.
-     *            * @return 0 if duplicate, 1 if inserted without resize, 2 if
-     *            resized and
-     *            inserted.
+     * @return 0 if duplicate, 1 if inserted without resize, 2 if
+     *         resized and
+     *         inserted.
      */
     public int insert(String key, MemHandle handle) {
         // do not insert duplicate
@@ -266,15 +267,15 @@ public class Hash {
      */
     private void placeExistingHandle(String key, MemHandle hand) {
         int home = h(key, capacity);
+        // Track if we found a spot
+        boolean found = false;
 
-        // probe until null slot is found
         for (int i = 0; i < capacity; i++) {
             int index = (home + i * i) % capacity;
-            // place if empty
-            if (table[index] == null) {
+            if (!found && table[index] == null) {
                 table[index] = hand;
                 size++;
-                return;
+                found = true;
             }
         }
     }
