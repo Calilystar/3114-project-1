@@ -24,19 +24,6 @@ public class SongsDB implements Songs {
         init = false;
     }
 
-// private int power(int num, int pow) {
-// if (num == 0) {
-// return 0;
-// }
-// int total = 1;
-// while (pow > 0) {
-// total = total * num;
-// pow -= 1;
-// }
-// return total;
-//
-// }
-
 
     /**
      * Create a brave new World.
@@ -54,10 +41,12 @@ public class SongsDB implements Songs {
 
         }
 
+        if (inMemMan <= 0) {
+            return "Initial memory manager size must be positive";
+
+        }
+
         if (!isPowerOfTwo(inMemMan)) {
-            if (inMemMan <= 0) {
-                return "Initial memory manager size must be positive";
-            }
             return "Initial memory manager size must be a power of 2";
         }
 
@@ -71,30 +60,12 @@ public class SongsDB implements Songs {
         init = true;
 
         return "";
-
-// boolean ensurePowerOfTwo = false;
-//
-// int num = 0;
-// while (power(2, num) <= inMemMan) {
-// if (power(2, num) == inMemMan) {
-// ensurePowerOfTwo = true;
-// }
-// num += 1;
-// }
-//
-// if (inHash > 0 || (inMemMan > 0 && ensurePowerOfTwo)) {
-//
-// }
-// else {
-// return "Cannot create.";
-// }
     }
 
 
     /**
      * Re-initialize the database
-     * 
-     * @return true on successful clear of database
+     * * @return true on successful clear of database
      */
     public boolean clear() {
 
@@ -264,11 +235,9 @@ public class SongsDB implements Songs {
 
     /**
      * Determine if number is power of two.
-     * 
-     * @param num
-     *            The number.
-     * 
-     * @return True if is power of 2, false if not.
+     * * @param num
+     * The number.
+     * * @return True if is power of 2, false if not.
      */
     private boolean isPowerOfTwo(int num) {
         if (num <= 0) {
