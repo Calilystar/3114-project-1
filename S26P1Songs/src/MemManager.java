@@ -50,7 +50,7 @@ public class MemManager {
         while (true) {
             if (search >= freeLists.length) {
                 expandPool();
-                search = target;
+                search = freeLists.length - 1;
                 continue;
             }
 
@@ -63,6 +63,7 @@ public class MemManager {
             if (search >= freeLists.length) {
                 expandPool();
                 search = target;
+                continue;
 
             }
         }
@@ -258,21 +259,22 @@ public class MemManager {
      */
     private void expandPool() {
         int oldSize = memPool.length;
-        int newSize = memPool.length * 2;
+        int newSize = oldSize * 2;
         byte[] newPool = new byte[newSize];
 
-        System.arraycopy(memPool, 0, newPool, 0, memPool.length);
+        System.arraycopy(memPool, 0, newPool, 0, oldSize);
 
         memPool = newPool;
-///
+
         Node[] copyFreeLists = new Node[freeLists.length + 1];
-
         System.arraycopy(freeLists, 0, copyFreeLists, 0, freeLists.length);
-
         freeLists = copyFreeLists;
 
-        addFreeBlock(oldSize, oldSize);
-///
+        
+        MemHandle newChunk = new MemHandle(oldSize, oldSize); 
+        release(newChunk);
+        
+        
         alertExpand.append("Memory pool expanded to be ").append(newSize)
             .append(" bytes\r\n");
     }

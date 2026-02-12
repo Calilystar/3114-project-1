@@ -43,32 +43,33 @@ public class Hash {
      * @return The home slot for that string
      */
     public int h(String s, int m) {
+        
+        if(m < 0) {
+            m = 0 - m;
+        }
         long sum = 0;
         long mult = 1;
         for (int i = 0; i < s.length(); i++) {
             mult = (i % 4 == 0) ? 1 : mult * 256;
             sum += s.charAt(i) * mult;
         }
+
         
-        long result = sum % m;
-        return (int) ((result < 0) ? result + m : result);
-    }
+        long quotient = sum / m;
+        
+        
+        long remainder = sum - (quotient * m);
+
+        
+        if (remainder < 0) {
+            remainder = remainder + m;
+        }
+
+        return (int) remainder;
+    } 
 
 
-    /**
-     * @return The number of active records.
-     */
-    public int getSize() {
-        return size;
-    }
 
-
-    /**
-     * @return The current table capacity.
-     */
-    public int getCapacity() {
-        return capacity;
-    }
 
 
     /**
