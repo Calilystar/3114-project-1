@@ -44,7 +44,7 @@ public class Hash {
      */
     public int h(String s, int m) {
         
-        if(m < 0) {
+        if (m < 0) {
             m = 0 - m;
         }
         long sum = 0;

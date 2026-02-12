@@ -50,22 +50,16 @@ public class MemManager {
         while (true) {
             if (search >= freeLists.length) {
                 expandPool();
-                search = freeLists.length - 1;
+                search = target;
                 continue;
             }
 
-            if (freeLists[search] != null) {
+            else if (freeLists[search] != null) {
                 break;
             }
 
             search = search + 1;
 
-            if (search >= freeLists.length) {
-                expandPool();
-                search = target;
-                continue;
-
-            }
         }
         Node block = freeLists[search];
         freeLists[search] = block.next;
@@ -270,11 +264,9 @@ public class MemManager {
         System.arraycopy(freeLists, 0, copyFreeLists, 0, freeLists.length);
         freeLists = copyFreeLists;
 
-        
-        MemHandle newChunk = new MemHandle(oldSize, oldSize); 
+        MemHandle newChunk = new MemHandle(oldSize, oldSize);
         release(newChunk);
-        
-        
+
         alertExpand.append("Memory pool expanded to be ").append(newSize)
             .append(" bytes\r\n");
     }
@@ -364,8 +356,7 @@ public class MemManager {
 }
 
 //
-//        public void setNext(Node nextNode) {
-//            next = nextNode;
-//        }
-//    }
-
+// public void setNext(Node nextNode) {
+// next = nextNode;
+// }
+// }
