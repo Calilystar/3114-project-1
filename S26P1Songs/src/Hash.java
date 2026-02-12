@@ -49,7 +49,9 @@ public class Hash {
             mult = (i % 4 == 0) ? 1 : mult * 256;
             sum += s.charAt(i) * mult;
         }
-        return (int)(Math.abs(sum) % m);
+        
+        long result = sum % m;
+        return (int) ((result < 0) ? result + m : result);
     }
 
 

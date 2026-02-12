@@ -700,4 +700,34 @@ public class SongsTest extends TestCase {
         assertTrue(output.contains("5: |Q|"));
         assertEquals(8, myHash.getCapacity());
     }
+    
+    /**
+     * Test to reproduce the Index -4 crash.
+     * We insert 3 items that all hash to index 0.
+     * This forces the probing loop to reach i=2 (2*2 = 4).
+     * If the logic is (0 - 4) % 8, it crashes with Index -4.
+     */
+    public void testNegativeIndexCrash() throws Exception {
+        // 1. Initialize DB with Hash Size 8
+        // "h", "p", and "x" all hash to 0 in a size-8 table using sfold
+        // 'h' = 104 -> 104 % 8 = 0
+        // 'p' = 112 -> 112 % 8 = 0
+        // 'x' = 120 -> 120 % 8 = 0
+        
+        SongsDB db = new SongsDB();
+        db.create(8, 32); // Size 8 is crucial for this reproduction
+
+        // 2. Insert first item (goes to Bucket 0)
+        db.insert("h", "SongA"); 
+        
+        // 3. Insert second item (Collides at 0 -> Probes i=1 -> Goes to Bucket 1)
+        db.insert("p", "SongB"); 
+        
+        // 4. Insert third item (Collides at 0 -> Probes i=1 (occupied) -> Probes i=2)
+        // CRASH HAPPENS HERE if the math is wrong
+        db.insert("x", "SongC"); 
+        
+        // If we get here, the bug is fixed!
+        System.out.println("Success: No crash on 3rd collision.");
+    }
 }

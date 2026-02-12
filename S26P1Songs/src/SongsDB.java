@@ -145,8 +145,8 @@ public class SongsDB implements Songs {
                 "| duplicates a record already in the Artist database\r\n");
         }
         else {
-            MemHandle artHand = memMana.insert(artistString.getBytes());
-
+            byte[] artBytes = artistString.getBytes();
+            MemHandle artHand = memMana.insert(artBytes);
             str.append(memMana.getExpandMethod());
 
             int res = artists.insert(artistString, artHand);
@@ -164,7 +164,8 @@ public class SongsDB implements Songs {
         }
 
         else {
-            MemHandle songHand = memMana.insert(songString.getBytes());
+            byte[] songBytes = songString.getBytes();
+            MemHandle songHand = memMana.insert(songBytes);
 
             str.append(memMana.getExpandMethod());
 
