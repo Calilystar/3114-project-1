@@ -42,31 +42,14 @@ public class Hash {
      *            The size of the hash table
      * @return The home slot for that string
      */
-    public int h(String s, int m) {
-        
-        if (m < 0) {
-            m = 0 - m;
-        }
-        long sum = 0;
-        long mult = 1;
+    public int h(String s, int M) {
+        long sum = 0, mul = 1;
         for (int i = 0; i < s.length(); i++) {
-            mult = (i % 4 == 0) ? 1 : mult * 256;
-            sum += s.charAt(i) * mult;
+          mul = (i % 4 == 0) ? 1 : mul * 256;
+          sum += s.charAt(i) * mul;
         }
-
-        
-        long quotient = sum / m;
-        
-        
-        long remainder = sum - (quotient * m);
-
-        
-        if (remainder < 0) {
-            remainder = remainder + m;
-        }
-
-        return (int) remainder;
-    } 
+        return (int)(Math.abs(sum) % M);
+      }
 
 
 

@@ -663,5 +663,109 @@ public class SongsTest extends TestCase {
             result.contains("Memory pool expanded"));
     }
     
+    /**
+     * Coverage: Hash.insert returns 0
+     * @throws Exception
+     */
+    public void testInsertReturnZero() throws Exception {
+        it = new SongsDB();
+        it.create(10, 64);
+        
+        it.insert("Daft Punk", "One More Time");
+        String result = it.insert("Daft Punk", "Harder Better Faster Stronger");
+        
+        assertTrue("Should detect duplicate artist", 
+            result.contains("duplicates a record already in the Artist database"));
+    }
+    
+    /**
+     * Coverage: Hash.insert returns 1
+     * @throws Exception
+     */
+    public void testInsertReturnOne() throws Exception {
+        it = new SongsDB();
+        it.create(10, 64);
+        
+        String result = it.insert("Radiohead", "Creep");
+        
+        assertFalse("Should not resize on first insert", 
+            result.contains("Artist hash table size doubled"));
+        assertTrue("Should confirm addition", 
+            result.contains("|Radiohead| is added to the Artist database"));
+    }
+    
+    /**
+     * Coverage: Hash.insert returns 2
+     * @throws Exception
+     */
+    public void testInsertReturnTwo() throws Exception {
+        it = new SongsDB();
+        it.create(4, 128); 
+        
+        it.insert("Artist1", "Song1"); 
+        
+        it.insert("Artist2", "Song2"); 
+        
+        
+        String result = it.insert("Artist3", "Song3");
+        
+        assertTrue("Should report hash table size doubled", 
+            result.contains("Artist hash table size doubled"));
+        assertTrue("Should report song table size doubled", 
+            result.contains("Song hash table size doubled"));
+    }
+    
+    /**
+     * Targets the 'else { prev.next = curr.next; }' branch
+     * @throws Exception
+     */
+    public void testRemoveFreeBlockWithPreviousNode() throws Exception {
+        it = new SongsDB();
+        it.create(10, 128); 
+
+        it.insert("A", "S1");
+        it.insert("B", "S2");
+        it.insert("C", "S3");
+        it.insert("D", "S4");
+
+        it.remove("artist", "A");
+        it.remove("artist", "C");
+
+        it.remove("artist", "D");
+
+        String blocks = it.print("blocks");
+        assertFalse("Offset 32 should have been removed via prev.next", 
+                    blocks.contains("16: 32"));
+    }
+    
+    
+    
+    /**
+    
+    Tests resize when old table has tombstone and live entries
+    @throws Exception*/
+    public void testResizeSkipsTombstonesAndNulls() throws Exception {
+        it = new SongsDB();
+        it.create(4, 64);
+
+            it.insert("A", "S1");
+            it.insert("B", "S2");
+
+            it.remove("artist", "A");
+
+            it.insert("C", "S3");
+
+            String result = it.insert("D", "S4");
+
+            assertTrue(result.contains("Artist hash table size doubled"));
+
+            String output = it.print("artist");
+            assertFalse(output.contains("|A|"));
+            assertTrue(output.contains("|B|"));
+            assertTrue(output.contains("|C|"));
+        }
+    
+    
+    
 }
 

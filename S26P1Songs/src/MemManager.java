@@ -102,21 +102,25 @@ public class MemManager {
         int size = blockSize(lvl);
         int offset = h.getStart();
 
-        while (lvl < freeLists.length) {
+        // Condition: Stop if the block is already the full pool size
+        while (size < memPool.length) {
             int buddy = offset ^ size;
 
+            // If the buddy isn't in the free list, we can't merge further
             if (!removeFreeBlock(lvl, buddy)) {
                 break;
             }
 
+            // Merge logic: always use the smaller offset as the start
             if (buddy < offset) {
                 offset = buddy;
             }
 
-            size = size * 2;
-            lvl = lvl + 1;
-
+            size *= 2; // Double the size for the next level
+            lvl++;     // Move up the level index
         }
+        
+        // Final step: Add whatever block we ended up with (merged or not)
         addFreeBlock(size, offset);
     }
 
@@ -316,9 +320,7 @@ public class MemManager {
      * Compute log2 of some int for power of two sizes.
      */
     private int log2(int x) {
-        if (x <= 0) {
-            return -1;
-        }
+        
         int lvl = 0;
         int y = x;
         while (y > 1) {
